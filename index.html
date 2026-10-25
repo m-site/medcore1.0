@@ -1279,22 +1279,94 @@ localStorage.removeItem('mq_ai_worker_url'); // مسح أي رابط قديم م
     }
 
     // 13. المساعد الذكي MedQuiz AI عبر الخادم الوسيط الآمن (PROD-003 و SEC-003)
-    async function requestAiExplanation(idx, btn) {
+    // تحويل نص الذكاء الاصطناعي إلى تنسيق طبي نظيف ومريح للعين
+    // تحويل مخرجات Medcore AI و MedMnemonic AI إلى بطاقات طبية منظمة وسهلة القراءة
+    function formatAiMedicalOutput(rawText, lang) {
+        const clean = String(rawText || '').replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+        const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
+        const dir = lang === 'en' ? 'ltr' : 'rtl';
+        const align = lang === 'en' ? 'left' : 'right';
+
+        let html = `<div dir="${dir}" style="text-align:${align}; display:flex; flex-direction:column; gap:8px;">`;
+
+        lines.forEach(line => {
+            const safeLine = escapeHTML(line);
+
+            // 1. عناوين الأقسام الرئيسية (🎯 / ✅ / ❌ / 💎 / 🧠 / 💡 / 🔤)
+            if (/^(🎯|✅|❌|💎|🧠|💡|🔤)/.test(line)) {
+                let borderCol = 'var(--gold)';
+                let bgCol = 'rgba(197, 160, 89, 0.12)';
+                if (line.startsWith('✅') || line.startsWith('🧠')) {
+                    borderCol = 'var(--success)';
+                    bgCol = 'var(--success-light)';
+                } else if (line.startsWith('💎')) {
+                    borderCol = 'var(--maroon)';
+                    bgCol = 'rgba(123, 17, 19, 0.22)';
+                }
+
+                html += `
+                    <div style="background:${bgCol}; border-${dir === 'rtl' ? 'right' : 'left'}:4px solid ${borderCol}; padding:8px 12px; border-radius:8px; font-weight:900; font-size:0.93rem; unicode-bidi:plaintext;">
+                        ${safeLine}
+                    </div>
+                `;
+            }
+            // 2. العناصر الفرعية وتفكيك الاختيارات أو الحروف (🔸)
+            else if (line.startsWith('🔸') || line.startsWith('•') || line.startsWith('-')) {
+                html += `
+                    <div style="background:var(--surface); border:1px solid var(--border); padding:7px 12px; border-radius:7px; font-weight:700; font-size:0.9rem; unicode-bidi:plaintext;">
+                        ${safeLine}
+                    </div>
+                `;
+            }
+            // 3. سطور الشرح المباشرة
+            else {
+                html += `
+                    <div style="padding:2px 6px; font-weight:700; font-size:0.92rem; line-height:1.65; unicode-bidi:plaintext;">
+                        ${safeLine}
+                    </div>
+                `;
+            }
+        });
+
+        html += `</div>`;
+        return html;
+    }
+
+    // الكشف التلقائي عن لغة الموقع الحالية أو تفضيل الطالب
+    function getActiveSiteLanguage() {
+        const savedPref = localStorage.getItem('mq_ai_lang');
+        if (savedPref === 'en' || savedPref === 'ar') return savedPref;
+        const htmlLang = (document.documentElement.lang || '').toLowerCase();
+        if (htmlLang.startsWith('en') || document.body.dir === 'ltr') return 'en';
+        return 'ar';
+    }
+
+    function switchAiLangAndRetry(idx, newLang) {
+        safeSetLocalStorage('mq_ai_lang', newLang);
+        const btn = document.getElementById(`ai-trig-btn-${idx}`);
+        requestAiExplanation(idx, btn, newLang);
+    }
+
+    async function requestAiExplanation(idx, btn, forcedLang) {
         const q = state.active[idx];
         const box = document.getElementById(`ai-exp-box-${idx}`);
         box.style.display = 'block';
+        if (btn && !btn.id) btn.id = `ai-trig-btn-${idx}`;
 
         const endpoint = (AI_WORKER_ENDPOINT || localStorage.getItem('mq_ai_worker_url') || "").trim();
         if (!endpoint || !endpoint.startsWith('https://')) {
-            box.innerHTML = `<span style="color:var(--error);">⚠️ يرجى وضع رابط الـ Worker الصحيح في AI_WORKER_ENDPOINT داخل index.html</span>`;
+            box.innerHTML = `<span style="color:var(--error);">⚠️ يرجى ضبط رابط AI_WORKER_ENDPOINT في index.html</span>`;
             return;
         }
 
-        btn.disabled = true;
-        box.innerHTML = `⏳ جاري تحليل السؤال طبياً عبر Medcore AI...`;
+        const lang = forcedLang || getActiveSiteLanguage();
+        if (btn) btn.disabled = true;
+
+        box.innerHTML = lang === 'en'
+            ? `<div style="text-align:left; direction:ltr;">⏳ <b>Medcore AI</b> is analyzing the clinical vignette...</div>`
+            : `<div>⏳ جاري تلخيص الفكرة الطبية واستبعاد البدائل عبر <b>Medcore AI</b>...</div>`;
 
         try {
-            // إرسال الطلب بدون ترويسة معقدة لتجنب حظر CORS Preflight على الموبايلات
             const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1303,21 +1375,30 @@ localStorage.removeItem('mq_ai_worker_url'); // مسح أي رابط قديم م
                     options: q.options || [],
                     correctAnswer: q.a,
                     existingExplanation: stripHTML(q.d || ''),
-                    mode: localStorage.getItem('mq_ai_tier') || 'lite'
+                    lang: lang
                 })
             });
+
             const data = await res.json();
             if (data.success) {
-                box.innerHTML = `<b style="color:var(--gold);">🤖 شرح Medcore AI:</b><br><div style="white-space:pre-wrap; margin-top:6px;">${escapeHTML(data.explanation)}</div>`;
-                const todayStr = new Date().toISOString().split('T')[0];
-                rtdb.ref('global_stats/' + todayStr + '/total_questions').set(firebase.database.ServerValue.increment(1)).catch(() => {});
+                const otherLang = lang === 'ar' ? 'en' : 'ar';
+                const switchLabel = lang === 'ar' ? '🇬🇧 Explain in English' : '🇪🇬 الشرح بالعربية';
+
+                box.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:8px; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+                        <span style="color:var(--gold); font-weight:900;">🤖 Medcore AI <small style="color:var(--text-muted); font-weight:700;">(${escapeHTML(data.model || 'Flash')})</small></span>
+                        <button type="button" class="btn-chip" onclick="switchAiLangAndRetry(${idx}, '${otherLang}')">${switchLabel}</button>
+                    </div>
+                    ${formatAiMedicalOutput(data.explanation, lang)}
+                `;
+                if (btn) btn.disabled = false;
             } else {
                 box.innerHTML = `<span style="color:var(--error);">❌ ${escapeHTML(data.error || 'تعذر توليد الشرح')}</span>`;
-                btn.disabled = false;
+                if (btn) btn.disabled = false;
             }
         } catch (err) {
-            box.innerHTML = `<span style="color:var(--error);">❌ خطأ اتصال بالرابط (${escapeHTML(endpoint)}): ${escapeHTML(err.message)}</span>`;
-            btn.disabled = false;
+            box.innerHTML = `<span style="color:var(--error);">❌ تعذر الاتصال بالخادم الذكي: ${escapeHTML(err.message)}</span>`;
+            if (btn) btn.disabled = false;
         }
     }
 
