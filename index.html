@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -444,7 +444,8 @@
     const rtdb = firebase.database();
 
     // رابط الخادم الوسيط الآمن لـ MedQuiz AI (تدارك SEC-003 و PROD-003)
-    const AI_WORKER_ENDPOINT = localStorage.getItem('mq_ai_worker_url') || "medcore-ai-proxy.ma7moud01030382018.workers.dev";
+    const AI_WORKER_ENDPOINT = "https://medcore-ai-proxy.ma7moud01030382018.workers.dev/";
+localStorage.removeItem('mq_ai_worker_url'); // مسح أي رابط قديم مخزن بالخطأ
 
     // 2. دوال الأمان والمساعدة العامة (تدارك SEC-004: منع XSS)
     function escapeHTML(str) {
@@ -1152,7 +1153,7 @@
         fbHtml += `
             <div style="margin-top:10px;">
                 <button type="button" class="btn-chip" style="border-color:var(--gold); color:var(--gold); padding:8px 14px;" onclick="requestAiExplanation(${idx}, this)">
-                    🤖 اشرح لي هذا السؤال بـ MedQuiz AI
+                    🤖 اشرح لي هذا السؤال بـ Medcore AI
                 </button>
                 <div id="ai-exp-box-${idx}" class="explanation-box" style="display:none; border-right-color:var(--gold);"></div>
             </div>
@@ -1283,25 +1284,20 @@
         const box = document.getElementById(`ai-exp-box-${idx}`);
         box.style.display = 'block';
 
-        if (!AI_WORKER_ENDPOINT) {
-            box.innerHTML = `
-                <b style="color:var(--gold);">🤖 MedQuiz AI:</b><br>
-                <span>لتشغيل الشرح بالذكاء الاصطناعي بأمان دون كشف المفاتيح، يرجى وضع رابط Cloudflare Worker في لوحة الإدارة أو إدخاله هنا لمرة واحدة:</span>
-                <div style="display:flex; gap:6px; margin-top:8px;">
-                    <input type="url" id="worker-url-inp-${idx}" placeholder="https://medcore-ai.YOUR-SUBDOMAIN.workers.dev" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); direction:ltr;">
-                    <button type="button" class="btn-nav btn-gold" style="padding:8px 14px;" onclick="saveWorkerUrlAndRetry(${idx})">حفظ وتشغيل</button>
-                </div>
-            `;
+        const endpoint = (AI_WORKER_ENDPOINT || localStorage.getItem('mq_ai_worker_url') || "").trim();
+        if (!endpoint || !endpoint.startsWith('https://')) {
+            box.innerHTML = `<span style="color:var(--error);">⚠️ يرجى وضع رابط الـ Worker الصحيح في AI_WORKER_ENDPOINT داخل index.html</span>`;
             return;
         }
 
         btn.disabled = true;
-        box.innerHTML = `⏳ جاري تحليل السؤال طبياً عبر MedQuiz AI...`;
+        box.innerHTML = `⏳ جاري تحليل السؤال طبياً عبر Medcore AI...`;
 
         try {
-            const res = await fetch(AI_WORKER_ENDPOINT, {
+            // إرسال الطلب بدون ترويسة معقدة لتجنب حظر CORS Preflight على الموبايلات
+            const res = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     question: stripHTML(q.q),
                     options: q.options || [],
@@ -1312,15 +1308,15 @@
             });
             const data = await res.json();
             if (data.success) {
-                box.innerHTML = `<b style="color:var(--gold);">🤖 شرح MedQuiz AI:</b><br><div style="white-space:pre-wrap; margin-top:6px;">${escapeHTML(data.explanation)}</div>`;
+                box.innerHTML = `<b style="color:var(--gold);">🤖 شرح Medcore AI:</b><br><div style="white-space:pre-wrap; margin-top:6px;">${escapeHTML(data.explanation)}</div>`;
                 const todayStr = new Date().toISOString().split('T')[0];
                 rtdb.ref('global_stats/' + todayStr + '/total_questions').set(firebase.database.ServerValue.increment(1)).catch(() => {});
             } else {
-                box.innerHTML = `<span style="color:var(--error);">❌ ${escapeHTML(data.error || 'تعذر الاتصال بالخادم الذكي')}</span>`;
+                box.innerHTML = `<span style="color:var(--error);">❌ ${escapeHTML(data.error || 'تعذر توليد الشرح')}</span>`;
                 btn.disabled = false;
             }
         } catch (err) {
-            box.innerHTML = `<span style="color:var(--error);">❌ تعذر الاتصال بالخادم الوسيط للذكاء الاصطناعي.</span>`;
+            box.innerHTML = `<span style="color:var(--error);">❌ خطأ اتصال بالرابط (${escapeHTML(endpoint)}): ${escapeHTML(err.message)}</span>`;
             btn.disabled = false;
         }
     }
