@@ -9,17 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <!-- مكتبة الاحتفال ومكتبة الشات الصوتي لساحة التحدي -->
+    <!-- مكتبة الاحتفال وقواعد بيانات الأدوات والترجمة -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" crossorigin="anonymous"></script>
+    <script src="medcore-tools.js"></script>
 </head>
 <body>
 
-    <!-- 1. الشريط العلوي المدمج والمنظم للهاتف والكمبيوتر -->
+    <!-- 1. الشريط العلوي المدمج (القيم المعملية + الحاسبات + المختصرات + اللغة + المظهر + القائمة) -->
     <nav class="top-navbar" id="main-navbar">
         <div class="top-navbar-inner">
             <div class="brand-group">
-                <a href="index.html" class="logo-text" title="الصفحة الرئيسية لـ MEDCORE">
+                <a href="index.html" class="logo-text" title="MEDCORE">
                     🩺 MEDCORE
                 </a>
                 <div class="status-pill hide-mobile" id="live-indicator" style="display:none;">
@@ -31,20 +31,26 @@
             <div id="global-timer" role="timer" aria-live="polite">00:00</div>
 
             <div class="navbar-actions">
-                <button type="button" class="icon-btn hide-mobile" onclick="openModal('mnemonic')" title="صانع المختصرات الطبية">
-                    🧠 Mnemonic
+                <button type="button" class="icon-btn hide-mobile" onclick="openHubTool('labs')" id="nav-btn-labs">
+                    🧪 <span data-i18n="labsBtn">القيم المعملية</span>
                 </button>
-                <button type="button" class="icon-btn hide-mobile" onclick="openModal('labs')" title="القيم المعملية المرجعية">
-                    🧪 Lab Values
+                <button type="button" class="icon-btn hide-mobile" onclick="openHubTool('calc')" id="nav-btn-calc">
+                    🧮 <span data-i18n="calcBtn">الحاسبات الطبية</span>
+                </button>
+                <button type="button" class="icon-btn hide-mobile" onclick="openHubTool('mnemonic')" id="nav-btn-mnem">
+                    🧠 <span data-i18n="mnemonicBtn">مختصرات الحفظ</span>
                 </button>
                 <button type="button" class="icon-btn" onclick="openNotifModal()" title="التحديثات والرسائل">
                     🔔 <span class="notif-badge-dot" id="main-notif-badge"></span>
                 </button>
-                <button type="button" class="icon-btn" onclick="toggleTheme()" id="theme-toggle-btn" title="تبديل المظهر النهاري/الليلي">
+                <button type="button" class="icon-btn" onclick="toggleAppLanguage()" id="lang-toggle-btn" title="تبديل اللغة / Switch Language">
+                    🌐 EN
+                </button>
+                <button type="button" class="icon-btn" onclick="toggleTheme()" id="theme-toggle-btn" title="تبديل المظهر">
                     ☀️/🌙
                 </button>
                 <button type="button" class="icon-btn" onclick="toggleSidebar(true)" style="background:var(--maroon); color:#fff; border-color:var(--gold);">
-                    ☰ القائمة
+                    ☰ <span data-i18n="menuBtn">القائمة</span>
                 </button>
             </div>
         </div>
@@ -54,94 +60,135 @@
     <div class="modal-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
     <aside class="mq-sidebar-drawer" id="mq-sidebar" aria-label="قائمة خدمات الطالب">
         <div style="padding:16px; background:var(--navy); border-bottom:2px solid var(--gold); display:flex; justify-content:space-between; align-items:center; color:#fff;">
-            <h3 style="margin:0; font-size:1.02rem;">🩺 قائمة خدمات MEDCORE</h3>
+            <h3 style="margin:0; font-size:1.02rem;" data-i18n="sidebarTitle">🩺 قائمة خدمات MEDCORE</h3>
             <button type="button" onclick="toggleSidebar(false)" style="background:none; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; font-weight:900;">✖</button>
         </div>
         <div style="padding:14px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1;">
             <button type="button" class="btn-nav btn-maroon" style="width:100%; border:2px solid var(--gold);" onclick="toggleSidebar(false); openModal('comp');">
-                📣 الشكاوى والاقتراحات للإدارة
+                📣 <span data-i18n="complaintsBtn">الشكاوى والاقتراحات</span>
             </button>
             <button type="button" class="btn-nav btn-blue" style="width:100%;" onclick="toggleSidebar(false); openNotifModal();">
-                🔔 التحديثات والرسائل <span id="sb-notif-badge" style="background:var(--gold-bright); color:#000; padding:1px 7px; border-radius:999px; font-size:0.72rem; display:none;">جديد</span>
+                🔔 <span data-i18n="notifsBtn">التحديثات والرسائل</span>
+                <span id="sb-notif-badge" style="background:var(--gold-bright); color:#000; padding:1px 7px; border-radius:999px; font-size:0.72rem; display:none;" data-i18n="newBadge">جديد</span>
             </button>
-            <button type="button" class="btn-nav btn-gold" style="width:100%;" onclick="toggleSidebar(false); openModal('mnemonic');">
-                🧠 صانع المختصرات (MedMnemonic AI)
+            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openHubTool('labs');">
+                🧪 <span data-i18n="labsBtn">القيم المعملية</span> (589)
             </button>
-            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('ai-models-info');">
-                🤖 حالة محركات MEDCORE AI
+            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openHubTool('calc');">
+                🧮 <span data-i18n="calcBtn">الحاسبات الطبية</span> (37)
+            </button>
+            <button type="button" class="btn-nav btn-gold" style="width:100%;" onclick="toggleSidebar(false); openHubTool('mnemonic');">
+                🧠 <span data-i18n="mnemonicBtn">مختصرات الحفظ</span> (MedMnemonic AI)
+            </button>
+            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openHubTool('terms');">
+                📖 <span data-i18n="termsBtn">قاموس المصطلحات الطبية</span>
+            </button>
+            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openArenaForCurrentLecture();">
+                ⚔️ <span data-i18n="arenaBtn">ساحة التحدي (MedQuiz Arena)</span>
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="window.location.href='?modules=true'">
-                📚 التجميعات والموديولات الشاملة
-            </button>
-            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="window.location.href='?arena=live'">
-                ⚔️ ساحة التحدي (MedQuiz Arena)
+                📚 <span data-i18n="modulesBtn">التجميعات والموديولات الشاملة</span>
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('errors');">
-                ⚠️ بنك أخطائك الذكي (<span id="sb-err-count">0</span>)
+                ⚠️ <span data-i18n="errorBankBtn">بنك أخطائك</span> (<span id="sb-err-count">0</span>)
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('score');">
-                📊 سجل درجاتك وأرشيفك
+                📊 <span data-i18n="scoreHistoryBtn">سجل درجاتك</span>
             </button>
-            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('labs');">
-                🧪 القيم المعملية (Lab Values)
+            <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('ai-models-info');">
+                🤖 <span data-i18n="aiModelsBtn">محركات MEDCORE AI</span>
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openModal('ai-promo');">
-                🎁 تفعيل كود باقة إضافية
+                🎁 <span data-i18n="promoBtn">تفعيل كود باقة إضافية</span>
             </button>
             <button type="button" class="btn-nav btn-green" style="width:100%;" onclick="toggleSidebar(false); openContributionModal();">
-                📤 رفع أسئلة باسمك للدفعة
+                📤 <span data-i18n="contributeBtn">ارفع أسئلة باسمك للدفعة</span>
             </button>
         </div>
     </aside>
 
-    <!-- 3. الحاوية الرئيسية للتطبيق -->
+    <!-- 3. بوابة الربط السلس مع ملف الأدوات والساحة (new.html Seamless Bridge) -->
+    <div id="hub-iframe-overlay" class="modal-overlay" style="padding:0; z-index:9950;">
+        <div style="width:100%; height:100%; max-width:1100px; max-height:94vh; margin:auto; background:var(--surface); border:2px solid var(--gold); border-radius:var(--radius-lg); overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--shadow);">
+            <div style="padding:10px 16px; background:var(--navy); border-bottom:2px solid var(--gold); display:flex; justify-content:space-between; align-items:center; color:#fff;">
+                <b id="hub-iframe-title" style="color:var(--gold); font-size:0.95rem;">🩺 MEDCORE Hub</b>
+                <button type="button" onclick="closeHubTool()" style="background:var(--error-light); color:var(--error); border:1px solid var(--error); border-radius:8px; padding:4px 12px; font-weight:900; cursor:pointer;" data-i18n="close">✖ إغلاق</button>
+            </div>
+            <iframe id="hub-iframe-view" src="about:blank" style="width:100%; flex:1; border:none; background:var(--bg);"></iframe>
+        </div>
+    </div>
+
+    <!-- 4. الحاوية الرئيسية للتطبيق -->
     <main class="container" id="main-app">
 
         <!-- لافتة التليجرام الديناميكية -->
         <a href="https://t.me/MEDQUIZ2026" target="_blank" id="telegram-dynamic-banner" class="pg-wrap">
             <div class="g-in">
-                <div class="pt-m" id="tg-banner-main-txt">📢 قناة MEDCORE الرسمية لتجميعات الأسئلة والامتحانات 🎯 اضغط هنا ✨</div>
-                <div class="pt-s">( <span class="hl-px">أسئلة امتحانات السنين السابقة</span> + أكثر من <span class="hl-15k">18,000</span> سؤال تفاعلي بالشرح الطبي ) 💪🏆</div>
+                <div class="pt-m" id="tg-banner-main-txt" data-i18n="tgBannerMain">📢 قناة MEDCORE الرسمية لتجميعات الأسئلة والامتحانات 🎯 اضغط هنا ✨</div>
+                <div class="pt-s" data-i18n="tgBannerSub">( <span class="hl-px">أسئلة امتحانات السنين السابقة</span> + أكثر من <span class="hl-15k">18,000</span> سؤال تفاعلي بالشرح الطبي ) 💪🏆</div>
             </div>
         </a>
 
-        <!-- زر الشكاوى والاقتراحات البارز والواضح في الصدارة -->
+        <!-- زر الشكاوى والاقتراحات البارز في الصدارة -->
         <button type="button" class="prominent-complaint-bar" onclick="openModal('comp')">
-            <span>📣 عندك شكوى، ملاحظة علمية، أو اقتراح لتطوير الموقع؟</span>
-            <span class="prominent-complaint-cta">تواصل معنا ✍️</span>
+            <span data-i18n="prominentCompText">📣 عندك شكوى، ملاحظة علمية، أو اقتراح لتطوير الموقع؟</span>
+            <span class="prominent-complaint-cta" data-i18n="prominentCompCta">تواصل معنا ✍️</span>
         </button>
 
-        <!-- شبكة أزرار الموبايل المنظمة (2×2 على الهاتف، 4 أعمدة على الكمبيوتر) -->
+        <!-- شبكة الأزرار السريعة (4 أزرار أساسية غير مكررة مع القيم المعملية أو المختصرات) -->
         <div class="student-quick-grid" id="quick-dashboard">
-            <button type="button" class="dash-style-btn" onclick="window.location.href='?modules=true'">📚 الموديولات الشاملة</button>
-            <button type="button" class="dash-style-btn" onclick="window.location.href='?arena=live'">⚔️ ساحة التحدي</button>
-            <button type="button" class="dash-style-btn" onclick="openModal('errors')">⚠️ بنك أخطائك</button>
-            <button type="button" class="dash-style-btn" onclick="openModal('mnemonic')">🧠 MedMnemonic AI</button>
+            <button type="button" class="dash-style-btn" onclick="window.location.href='?modules=true'">
+                📚 <span data-i18n="quickModules">الموديولات الشاملة</span>
+            </button>
+            <button type="button" class="dash-style-btn" onclick="openArenaForCurrentLecture()">
+                ⚔️ <span data-i18n="quickArena">ساحة التحدي</span>
+            </button>
+            <button type="button" class="dash-style-btn" onclick="openModal('errors')">
+                ⚠️ <span data-i18n="quickErrors">بنك أخطائك</span>
+            </button>
+            <button type="button" class="dash-style-btn" onclick="openModal('score')">
+                📊 <span data-i18n="quickScores">سجل درجاتك</span>
+            </button>
         </div>
 
-        <!-- شاشة التحميل والخطأ -->
+        <!-- شاشة التحميل -->
         <div id="loading-view" class="quiz-card" style="display:none; text-align:center; padding:38px 18px;">
             <div style="font-size:2.6rem; margin-bottom:10px;">⏳</div>
-            <h3 id="loading-title" style="margin:0; color:var(--gold);">جاري تحضير المادة العلمية...</h3>
-            <p id="loading-sub" style="color:var(--text-muted); font-size:0.88rem; margin-top:6px;">يرجى الانتظار للحظات يا دكتور</p>
+            <h3 id="loading-title" style="margin:0; color:var(--gold);" data-i18n="loadingTitle">جاري تحضير المادة العلمية...</h3>
+            <p id="loading-sub" style="color:var(--text-muted); font-size:0.88rem; margin-top:6px;" data-i18n="loadingSub">يرجى الانتظار للحظات يا دكتور</p>
         </div>
 
-        <!-- أ) الشاشة الرئيسية وفهرس البحث -->
+        <!-- أ) الشاشة الرئيسية ومحرك البحث الصاروخي الذكي (Rocket Fuzzy + AI Search) -->
         <section id="home-view" class="quiz-card" style="display:none;">
-            <h2 style="font-weight:900; margin:0 0 8px 0; text-align:center; font-size:1.25rem;">أهلاً بك في MEDCORE يا دكتور 👨‍⚕️🩺</h2>
-            <p style="text-align:center; font-size:0.84rem; color:var(--text-muted); margin:0 0 14px 0;">
-                💡 حدد أي مصطلح إنجليزي أثناء الحل لترجمته فوراً، واستخدم محرك <b>MEDCORE AI</b> لشرح ومناقشة أي سؤال طبياً.
+            <h2 style="font-weight:900; margin:0 0 8px 0; text-align:center; font-size:1.25rem;" data-i18n="welcomeTitle">أهلاً بك في MEDCORE يا دكتور 👨‍⚕️🩺</h2>
+            <p style="text-align:center; font-size:0.84rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="welcomeSub">
+                💡 حدد أي مصطلح إنجليزي أثناء الحل لترجمته فوراً، واستخدم محرك MEDCORE AI لشرح ومناقشة أي سؤال طبياً.
             </p>
 
             <div class="static-section-box">
-                <label for="home-catalog-search" style="font-weight:800; font-size:0.88rem; display:block; margin-bottom:8px;">🔍 ابحث في فهرس المحاضرات والمعامل المتاحة:</label>
-                <input type="search" id="home-catalog-search" placeholder="اكتب اسم المحاضرة أو الكود (مثال: CNS, Cardio, Anatomy)..." oninput="filterHomeCatalog()" style="width:100%; padding:11px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-weight:700;">
-                <div id="home-catalog-list" style="margin-top:10px; max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:7px;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                    <label for="home-catalog-search" style="font-weight:800; font-size:0.9rem;" data-i18n="searchLabel">🔍 ابحث باسم المحاضرة أو الموضوع الطبي:</label>
+                    <span id="catalog-total-badge" class="status-pill" style="font-size:0.72rem;">⏳ جاري التحميل...</span>
+                </div>
+
+                <div style="display:flex; gap:6px;">
+                    <input type="search" id="home-catalog-search" placeholder="اكتب اسم المحاضرة حتى لو بالتقريب (مثال: Autonomic, Cranial, Cardio, فسيولوجي)..." oninput="onRocketSearchInput()" onkeydown="if(event.key==='Enter') triggerAiSmartCatalogSearch()" style="flex:1; padding:11px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-weight:700;">
+                    <button type="button" class="btn-nav btn-gold" id="btn-ai-smart-search" onclick="triggerAiSmartCatalogSearch()" title="بحث ذكي بالمعنى عبر الذكاء الاصطناعي" style="padding:10px 14px; white-space:nowrap;">
+                        🤖 <span data-i18n="aiSearchBtn">بحث ذكي</span>
+                    </button>
+                </div>
+
+                <div id="ai-search-status" style="display:none; font-size:0.8rem; color:var(--gold); font-weight:800; margin-top:6px;"></div>
+                <div id="home-catalog-list" style="margin-top:10px; max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:7px;"></div>
             </div>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-                <button type="button" class="btn-nav btn-green" style="flex:1; min-width:170px;" onclick="openContributionModal()">📤 ارفع أسئلة باسمك للدفعة</button>
-                <button type="button" class="btn-nav btn-outline" style="flex:1; min-width:170px;" onclick="openModal('labs')">🧪 القيم المعملية (Lab Values)</button>
+                <button type="button" class="btn-nav btn-maroon" style="flex:1; min-width:170px;" onclick="window.location.href='?modules=true'">
+                    📚 <span data-i18n="browseModulesBtn">تصفح الموديولات الشاملة</span>
+                </button>
+                <button type="button" class="btn-nav btn-green" style="flex:1; min-width:170px;" onclick="openContributionModal()">
+                    📤 <span data-i18n="contributeBtn">ارفع أسئلة باسمك للدفعة</span>
+                </button>
             </div>
         </section>
 
@@ -152,75 +199,77 @@
             <div id="setup-wizard" class="super-wrapper">
                 <div class="lecture-main-banner">
                     <h2 id="lec-title-display" style="margin:0; font-size:1.15rem; font-weight:900;"></h2>
-                    <button type="button" class="btn-chip" style="background:var(--gold); color:#0b1322; border:none;" onclick="copyCurrentLink()">🔗 نسخ الرابط</button>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" class="btn-chip" style="background:var(--maroon); color:#fff; border-color:var(--gold);" onclick="openArenaForCurrentLecture()">⚔️ <span data-i18n="challengeFriendsBtn">تحدي الأصدقاء في هذه المحاضرة</span></button>
+                        <button type="button" class="btn-chip" style="background:var(--gold); color:#0b1322; border:none;" onclick="copyCurrentLink()">🔗 <span data-i18n="copyLinkBtn">نسخ الرابط</span></button>
+                    </div>
                 </div>
 
                 <!-- لافتة استكمال التقدم السابق -->
                 <div id="resume-banner-box" class="dynamic-section-box" style="display:none; text-align:center;">
                     <h4 id="resume-banner-txt" style="margin:0 0 10px 0; color:var(--gold); font-size:0.92rem;"></h4>
                     <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-                        <button type="button" class="btn-nav btn-green" onclick="resumeSavedQuizNow()">▶️ استكمال الاختبار فوراً</button>
-                        <button type="button" class="btn-nav btn-outline" onclick="clearSavedQuizProgress()">🗑️ بدء اختبار جديد</button>
+                        <button type="button" class="btn-nav btn-green" onclick="resumeSavedQuizNow()">▶️ <span data-i18n="resumeNowBtn">استكمال الاختبار فوراً</span></button>
+                        <button type="button" class="btn-nav btn-outline" onclick="clearSavedQuizProgress()">🗑️ <span data-i18n="startNewBtn">بدء اختبار جديد</span></button>
                     </div>
                 </div>
 
                 <!-- الخطوة 1: النطاق -->
                 <div id="step-1" class="setup-step active">
-                    <h3 style="margin-top:0; font-size:1rem;">1️⃣ حابب تمتحن على إيه يا دكتور؟</h3>
+                    <h3 style="margin-top:0; font-size:1rem;" data-i18n="step1Title">1️⃣ اختر نطاق الاختبار:</h3>
                     <button type="button" class="config-btn" onclick="setScope('all')">
-                        <span>📚 المحاضرة كاملة</span>
+                        <span data-i18n="scopeAll">📚 المحاضرة كاملة</span>
                         <small id="all-q-badge" style="color:var(--gold); font-weight:900;"></small>
                     </button>
                     <button type="button" class="config-btn" style="border-color:var(--error);" onclick="setScope('errors')">
-                        <span>⚠️ أخطاؤك السابقة في هذه المحاضرة (تكرار متباعد)</span>
+                        <span data-i18n="scopeErrors">⚠️ أخطاؤك السابقة في هذه المحاضرة</span>
                         <small id="err-q-badge" style="color:var(--error); font-weight:900;"></small>
                     </button>
                     <button type="button" class="config-btn" onclick="showPartsGrid()">
-                        <span>🧩 تحديد أجزاء (Parts) معينة</span>
+                        <span data-i18n="scopeParts">🧩 تحديد أجزاء (Parts) معينة</span>
                         <span>▾</span>
                     </button>
                     <div id="parts-selection-grid" style="display:none; margin-top:10px; grid-template-columns:repeat(auto-fit, minmax(145px, 1fr)); gap:7px;"></div>
-                    <button type="button" id="p-next-wizard" class="btn-nav btn-gold" style="display:none; width:100%; margin-top:12px;" onclick="setScope('custom')">التالي ➡️</button>
+                    <button type="button" id="p-next-wizard" class="btn-nav btn-gold" style="display:none; width:100%; margin-top:12px;" onclick="setScope('custom')"><span data-i18n="nextBtn">التالي ➡️</span></button>
                 </div>
 
                 <!-- الخطوة 2: العدد -->
                 <div id="step-2" class="setup-step">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem;">2️⃣ عدد الأسئلة؟ <small style="color:var(--gold);">(المتاح: <span id="max-q-count">0</span>)</small></h3>
-                        <button type="button" class="btn-chip" onclick="prevS(2)">🔙 رجوع</button>
+                        <h3 style="margin:0; font-size:1rem;"><span data-i18n="step2Title">2️⃣ عدد الأسئلة المطلوبة:</span> <small style="color:var(--gold);">(<span data-i18n="availableTxt">المتاح</span>: <span id="max-q-count">0</span>)</small></h3>
+                        <button type="button" class="btn-chip" onclick="prevS(2)">🔙 <span data-i18n="backBtn">رجوع</span></button>
                     </div>
                     <input type="number" id="q-limit-input" min="1" placeholder="اتركه فارغاً لاختيار كل الأسئلة">
-                    <button type="button" class="btn-nav btn-gold" style="margin-top:14px; width:100%; padding:12px;" onclick="applyLimit()">التالي ➡️</button>
+                    <button type="button" class="btn-nav btn-gold" style="margin-top:14px; width:100%; padding:12px;" onclick="applyLimit()"><span data-i18n="nextBtn">التالي ➡️</span></button>
                 </div>
 
                 <!-- الخطوة 3: نظام العرض -->
                 <div id="step-3" class="setup-step">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem;">3️⃣ نظام عرض الإجابات؟</h3>
-                        <button type="button" class="btn-chip" onclick="prevS(3)">🔙 رجوع</button>
+                        <h3 style="margin:0; font-size:1rem;" data-i18n="step3Title">3️⃣ نظام عرض الإجابات:</h3>
+                        <button type="button" class="btn-chip" onclick="prevS(3)">🔙 <span data-i18n="backBtn">رجوع</span></button>
                     </div>
-                    <button type="button" class="config-btn" onclick="setMode('instant')">⚡ تصحيح فوري (مع الشرح ومناقشة MEDCORE AI)</button>
-                    <button type="button" class="config-btn" onclick="setMode('exam')">📝 نظام امتحان (التصحيح والمراجعة الكاملة في النهاية)</button>
+                    <button type="button" class="config-btn" onclick="setMode('instant')" data-i18n="modeInstant">⚡ تصحيح فوري (مع الشرح ومناقشة MEDCORE AI)</button>
+                    <button type="button" class="config-btn" onclick="setMode('exam')" data-i18n="modeExam">📝 نظام امتحان (التصحيح والمراجعة الكاملة في النهاية)</button>
                 </div>
 
                 <!-- الخطوة 4: التوقيت -->
                 <div id="step-4" class="setup-step">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h3 style="margin:0; font-size:1rem;">4️⃣ وقت الاختبار؟</h3>
-                        <button type="button" class="btn-chip" onclick="prevS(4)">🔙 رجوع</button>
+                        <h3 style="margin:0; font-size:1rem;" data-i18n="step4Title">4️⃣ وقت الاختبار:</h3>
+                        <button type="button" class="btn-chip" onclick="prevS(4)">🔙 <span data-i18n="backBtn">رجوع</span></button>
                     </div>
-                    <button type="button" class="config-btn" onclick="startFinalQuiz(false)">🔓 بدون وقت (مفتوح للمذاكرة بتركيز)</button>
-                    <button type="button" class="config-btn" onclick="startFinalQuiz(true)">⏱️ بوقت رسمي (45 ثانية لكل سؤال)</button>
+                    <button type="button" class="config-btn" onclick="startFinalQuiz(false)" data-i18n="timeOpen">🔓 بدون وقت (مفتوح للمذاكرة بتركيز)</button>
+                    <button type="button" class="config-btn" onclick="startFinalQuiz(true)" data-i18n="timeOfficial">⏱️ بوقت رسمي (45 ثانية لكل سؤال)</button>
                 </div>
             </div>
 
-            <!-- شريط أدوات الاختبار النشط -->
+            <!-- شريط أدوات الاختبار النشط (خالٍ من تكرار القيم المعملية أو المختصرات) -->
             <div id="active-quiz-toolbar" style="display:none; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; background:var(--surface); padding:10px 12px; border-radius:var(--radius-md); border:1.5px solid var(--border);">
                 <div style="font-weight:800; font-size:0.86rem; color:var(--gold);" id="toolbar-lec-title"></div>
                 <div style="display:flex; gap:6px; align-items:center;">
-                    <button type="button" class="btn-chip" onclick="toggleLandmarkModal()">🔖 المحفوظات (<span id="toolbar-lm-count">0</span>)</button>
-                    <button type="button" class="btn-chip" onclick="openModal('labs')">🧪 Lab</button>
-                    <button type="button" class="btn-chip" onclick="finalize()" style="border-color:var(--gold); color:var(--gold);">🏁 إنهاء</button>
+                    <button type="button" class="btn-chip" onclick="toggleLandmarkModal()">🔖 <span data-i18n="savedBtn">المحفوظات</span> (<span id="toolbar-lm-count">0</span>)</button>
+                    <button type="button" class="btn-chip" onclick="finalize()" style="border-color:var(--gold); color:var(--gold);">🏁 <span data-i18n="finishBtn">إنهاء</span></button>
                 </div>
             </div>
 
@@ -229,35 +278,35 @@
 
             <!-- شاشة النتيجة النهائية والمراجعة -->
             <div id="result-view" class="quiz-card" style="display:none; text-align:center;">
-                <h2 style="font-weight:900; margin-top:0;">النتيجة النهائية 📊</h2>
+                <h2 style="font-weight:900; margin-top:0;" data-i18n="finalResultTitle">النتيجة النهائية 📊</h2>
                 <div id="final-pct-display" style="font-size:3.8rem; font-weight:900; color:var(--gold); margin:4px 0;">0%</div>
                 <div id="final-raw-score" style="font-weight:800; color:var(--text-muted); margin-bottom:12px;">0 / 0</div>
                 <h3 id="final-phrase" style="margin-bottom:14px; font-size:1rem;"></h3>
 
-                <div id="revision-alert" class="dynamic-section-box" style="display:none; text-align:right; margin-bottom:14px;">
-                    <h4 style="color:#fca5a5; margin:0 0 6px 0; font-size:0.9rem;">⚠️ أجزاء تحتاج مراجعة (أقل من 60%):</h4>
-                    <ul id="rev-parts-list" style="margin:0; padding-right:18px; font-weight:800; font-size:0.88rem;"></ul>
+                <div id="revision-alert" class="dynamic-section-box" style="display:none; text-align:start; margin-bottom:14px;">
+                    <h4 style="color:#fca5a5; margin:0 0 6px 0; font-size:0.9rem;" data-i18n="weakPartsTitle">⚠️ أجزاء تحتاج مراجعة (أقل من 60%):</h4>
+                    <ul id="rev-parts-list" style="margin:0; padding-inline-start:18px; font-weight:800; font-size:0.88rem;"></ul>
                 </div>
 
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
-                    <button type="button" class="btn-nav btn-maroon" style="flex:1;" onclick="shareScoreForCompetition()">🚀 مشاركة النتيجة للمنافسة</button>
-                    <button type="button" class="btn-nav btn-blue" style="flex:1;" onclick="window.location.reload()">🔄 إعادة الاختبار</button>
+                    <button type="button" class="btn-nav btn-maroon" style="flex:1;" onclick="shareScoreForCompetition()">🚀 <span data-i18n="shareResultBtn">مشاركة النتيجة للمنافسة</span></button>
+                    <button type="button" class="btn-nav btn-blue" style="flex:1;" onclick="window.location.reload()">🔄 <span data-i18n="retryBtn">إعادة الاختبار</span></button>
                 </div>
 
-                <div id="exam-review-list" style="text-align:right;"></div>
+                <div id="exam-review-list" style="text-align:start;"></div>
             </div>
         </section>
 
-        <!-- ج) حاوية الأنظمة الفرعية (التجميعات / الشامل / OSPE / Arena) -->
+        <!-- ج) حاوية الأنظمة الفرعية (التجميعات / الشامل / OSPE) -->
         <section id="sub-engine-view" style="display:none;"></section>
 
     </main>
 
-    <!-- 4. القاموس الطبي العائم السفلي (Bottom Sheet) -->
+    <!-- 5. القاموس الطبي العائم السفلي (Bottom Sheet) -->
     <div id="mq-dict" class="mq-dict-sheet" role="region" aria-label="القاموس الطبي الفوري">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:6px; margin-bottom:6px;">
-            <span style="font-weight:900; color:var(--gold); font-size:0.86rem;">🩺 القاموس والمترجم الطبي الفوري</span>
-            <button type="button" onclick="closeDictSheet()" style="background:none; border:none; color:var(--error); font-size:1rem; font-weight:900; cursor:pointer;">✖ إغلاق</button>
+            <span style="font-weight:900; color:var(--gold); font-size:0.86rem;" data-i18n="instantDictTitle">🩺 القاموس والمترجم الطبي الفوري</span>
+            <button type="button" onclick="closeDictSheet()" style="background:none; border:none; color:var(--error); font-size:1rem; font-weight:900; cursor:pointer;" data-i18n="close">✖ إغلاق</button>
         </div>
         <div id="mq-d-status" style="color:var(--gold-bright); font-size:0.86rem; font-weight:800; display:none;"></div>
         <div id="mq-d-res" style="display:none;">
@@ -266,155 +315,122 @@
         </div>
     </div>
 
-    <!-- 5. النوافذ المنبثقة (Modals) -->
+    <!-- 6. النوافذ المنبثقة الأساسية -->
 
     <!-- أ) نافذة الشكاوى والاقتراحات -->
     <div id="modal-comp" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('comp')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">📣 صندوق الشكاوى والاقتراحات</h3>
-            <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0;">رسالتك تصل مباشرة لإدارة MEDCORE، يمكنك كتابة أي اقتراح أو ملاحظة علمية أو طلب مراجعة:</p>
-            <textarea id="comp-msg-box" style="width:100%; height:115px; border-radius:var(--radius-sm); padding:10px; background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);" placeholder="اكتب شكوتك أو اقتراحك هنا يا دكتور..."></textarea>
-            <button type="button" class="btn-nav btn-gold" style="width:100%; margin-top:10px;" onclick="sendComplaint()">إرسال للإدارة الآن ✅</button>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="compModalTitle">📣 صندوق الشكاوى والاقتراحات</h3>
+            <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0;" data-i18n="compModalSub">رسالتك تصل مباشرة لإدارة MEDCORE، يمكنك كتابة أي اقتراح أو ملاحظة علمية:</p>
+            <textarea id="comp-msg-box" style="width:100%; height:115px; border-radius:var(--radius-sm); padding:10px; background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);" placeholder="اكتب رسالتك أو اقتراحك هنا..."></textarea>
+            <button type="button" class="btn-nav btn-gold" style="width:100%; margin-top:10px;" onclick="sendComplaint()"><span data-i18n="sendBtn">إرسال الآن ✅</span></button>
         </div>
     </div>
 
-    <!-- ب) نافذة صانع المختصرات الطبية (MedMnemonic AI) -->
-    <div id="modal-mnemonic" class="modal-overlay">
-        <div class="modal-card">
-            <button type="button" class="close-btn" onclick="closeModal('mnemonic')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🧠 MedMnemonic AI</h3>
-            <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 10px 0;">حوّل أي قائمة طبية إلى مختصر ذكي لا يُنسى في الامتحان:</p>
-            <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;">
-                <span style="font-size:0.78rem; font-weight:800; color:var(--gold);">أمثلة جاهزة:</span>
-                <button type="button" class="btn-chip" onclick="setMnemonicExample('Cranial Nerves (12 nerves)')">Cranial Nerves</button>
-                <button type="button" class="btn-chip" onclick="setMnemonicExample('Causes of High Anion Gap Metabolic Acidosis (MUDPILES)')">MUDPILES</button>
-                <button type="button" class="btn-chip" onclick="setMnemonicExample('CURB-65 score for Pneumonia severity')">CURB-65</button>
-                <button type="button" class="btn-chip" onclick="setMnemonicExample('Child-Pugh score criteria for liver cirrhosis')">Child-Pugh</button>
-                <button type="button" class="btn-chip" onclick="setMnemonicExample('Causes and signs of Hypokalemia')">Hypokalemia</button>
-            </div>
-            <textarea id="mnemonic-input-txt" rows="3" placeholder="اكتب القائمة الطبية أو الموضوع هنا..." style="width:100%; padding:10px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border); margin-bottom:10px;"></textarea>
-            <div style="display:flex; gap:8px;">
-                <button type="button" id="btn-gen-mnemonic" class="btn-nav btn-gold" style="flex:1;" onclick="generateMedicalMnemonic()">✨ إنشاء Mnemonic</button>
-                <button type="button" class="btn-nav btn-outline" onclick="document.getElementById('mnemonic-input-txt').value=''; document.getElementById('mnemonic-output-box').style.display='none';">🗑️ مسح</button>
-            </div>
-            <div id="mnemonic-output-box" class="explanation-box" style="display:none; margin-top:12px; white-space:pre-wrap;"></div>
-        </div>
-    </div>
-
-    <!-- ج) نافذة حالة محركات MEDCORE AI الأربعة -->
+    <!-- ب) نافذة حالة محركات MEDCORE AI الأربعة (نصوص نظيفة وموجهة للطالب) -->
     <div id="modal-ai-models-info" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('ai-models-info')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🤖 منظومة محركات MEDCORE AI الذكية</h3>
-            <p style="font-size:0.82rem; color:var(--text-muted);">تختار المنصة المحرك الأنسب تلقائياً لكل سؤال حسب تعقيده الإكلينيكي والضغط اللحظي لضمان أعلى دقة وأقصى سرعة:</p>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="aiSysTitle">🤖 محركات MEDCORE AI الذكية</h3>
+            <p style="font-size:0.82rem; color:var(--text-muted);" data-i18n="aiSysSub">يعمل النظام على اختيار المحرك الطبي الأنسب تلقائياً لكل سؤال حسب مستواه العلمي لضمان أعلى دقة وأسرع استجابة:</p>
 
             <div class="static-section-box" style="margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <b dir="ltr">⚡ Medcore Speed Lite 2.5</b>
-                    <span class="status-pill">نشط تلقائياً</span>
+                    <span class="status-pill" data-i18n="activeAuto">متاح تلقائياً</span>
                 </div>
-                <small style="color:var(--text-muted);">مخصص للسرعة الفائقة، الأسئلة المباشرة، المختصرات، والمناقشات السريعة.</small>
+                <small style="color:var(--text-muted);" data-i18n="liteDesc">محرك فائق السرعة للأسئلة المباشرة، والمختصرات الطبية، والمناقشات السريعة.</small>
             </div>
 
             <div class="static-section-box" style="margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <b dir="ltr">🚀 Medcore Speed 3.5</b>
-                    <span class="status-pill">نشط تلقائياً</span>
+                    <span class="status-pill" data-i18n="activeAuto">متاح تلقائياً</span>
                 </div>
-                <small style="color:var(--text-muted);">يوازن بذكاء بين السرعة العالية والدقة العلمية في تفكيك أسئلة الـ MCQ.</small>
+                <small style="color:var(--text-muted);" data-i18n="speedDesc">يجمع بين السرعة العالية والدقة الأكاديمية في تفكيك أسئلة الاختيار من متعدد واستبعاد البدائل.</small>
             </div>
 
             <div class="static-section-box" style="margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <b dir="ltr">🧠 Medcore Brainstorming 2</b>
-                    <span class="status-pill">نشط للحالات السريرية</span>
+                    <span class="status-pill" data-i18n="activeCases">نشط للحالات الإكلينيكية</span>
                 </div>
-                <small style="color:var(--text-muted);">يعمل تلقائياً عند اكتشاف Clinical Case معقدة أو تحاليل طبية تتطلب استنتاجاً عميقاً.</small>
+                <small style="color:var(--text-muted);" data-i18n="brainDesc">مخصص لتحليل الحالات السريرية (Clinical Cases) وربط الأعراض بالتحاليل الطبية.</small>
             </div>
 
             <div class="dynamic-section-box" style="margin-bottom:0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <b dir="ltr">👑 Medcore Ultra</b>
-                    <span id="ultra-status-pill" class="status-pill" style="background:var(--error-light); color:var(--error); border-color:var(--error);">🔒 غير متاح حالياً للاستخدام للمستخدمين</span>
+                    <span id="ultra-status-pill" class="status-pill" style="background:var(--error-light); color:var(--error); border-color:var(--error);" data-i18n="ultraLocked">🔒 غير متاح حالياً للمستخدمين</span>
                 </div>
-                <small style="color:var(--text-muted);">المحرك الأعلى دقة على الإطلاق بوضع التفكير الاستشاري العميق (مخصص للقيادة والمراجعة العلمية).</small>
+                <small style="color:var(--text-muted);" data-i18n="ultraDesc">الإصدار الأعلى دقة بقدرات الاستنتاج الطبي المتقدم والتشخيص التفريقي الشامل.</small>
             </div>
         </div>
     </div>
 
-    <!-- د) نافذة تفعيل كود إضافي -->
+    <!-- ج) نافذة تفعيل كود إضافي -->
     <div id="modal-ai-promo" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('ai-promo')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🎁 تفعيل كود باقة MEDCORE AI</h3>
-            <p style="font-size:0.84rem; color:var(--text-muted);">أدخل كود التفعيل المخصص للدفعة:</p>
-            <input type="text" id="student-promo-input" placeholder="أدخل الكود هنا..." style="width:100%; padding:11px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface-elevated); color:var(--text); text-align:center; font-weight:900; direction:ltr; margin-bottom:10px;">
-            <button type="button" class="btn-nav btn-gold" style="width:100%;" onclick="activateStudentPromoCode()">تفعيل الكود الآن ✨</button>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="promoModalTitle">🎁 تفعيل كود باقة MEDCORE AI</h3>
+            <p style="font-size:0.84rem; color:var(--text-muted);" data-i18n="promoModalSub">أدخل كود التفعيل المخصص للدفعة:</p>
+            <input type="text" id="student-promo-input" placeholder="MED-XXXXXXXX" style="width:100%; padding:11px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface-elevated); color:var(--text); text-align:center; font-weight:900; direction:ltr; margin-bottom:10px;">
+            <button type="button" class="btn-nav btn-gold" style="width:100%;" onclick="activateStudentPromoCode()"><span data-i18n="activateBtn">تفعيل الكود الآن ✨</span></button>
             <div id="promo-status-msg" style="margin-top:10px; font-weight:800; text-align:center; font-size:0.88rem;"></div>
         </div>
     </div>
 
-    <!-- هـ) نافذة سجل الدرجات -->
+    <!-- د) نافذة سجل الدرجات -->
     <div id="modal-score" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('score')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">📊 سجل التقدم والدرجات</h3>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="scoreModalTitle">📊 سجل التقدم والدرجات</h3>
             <div id="history-content-list" style="margin-top:10px; max-height:340px; overflow-y:auto;"></div>
         </div>
     </div>
 
-    <!-- و) نافذة بنك الأخطاء الذكي -->
+    <!-- هـ) نافذة بنك الأخطاء الذكي -->
     <div id="modal-errors" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('errors')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">⚠️ بنك الأخطاء الذكي (Spaced Repetition)</h3>
-            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 10px 0;">💡 السؤال الذي تجيبه صحيحاً <b>مرتين متتاليتين</b> يُحذف تلقائياً من البنك بعد إتقانه.</p>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="errorsModalTitle">⚠️ بنك الأخطاء الذكي</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 10px 0;" data-i18n="errorsModalSub">💡 السؤال الذي تجيبه بشكل صحيح مرتين متتاليتين أثناء مراجعة أخطائك يُزال تلقائياً بعد إتقانه.</p>
             <div id="errors-content-list" style="max-height:360px; overflow-y:auto;"></div>
         </div>
     </div>
 
-    <!-- ز) نافذة الأسئلة المحفوظة (Landmarks) -->
+    <!-- و) نافذة الأسئلة المحفوظة (Landmarks) -->
     <div id="modal-landmarks" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('landmarks')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🔖 الأسئلة المحفوظة (Landmarks)</h3>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="landmarksModalTitle">🔖 الأسئلة المحفوظة للمراجعة</h3>
             <div id="landmarks-content-list" style="margin-top:10px; max-height:360px; overflow-y:auto;"></div>
         </div>
     </div>
 
-    <!-- ح) نافذة القيم المعملية المرجعية (Lab Values) -->
-    <div id="modal-labs" class="modal-overlay">
-        <div class="modal-card" style="max-width:660px;">
-            <button type="button" class="close-btn" onclick="closeModal('labs')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🧪 القيم المعملية المرجعية (Clinical Lab Values)</h3>
-            <input type="search" id="lab-search-input" placeholder="ابحث عن تحليل (مثال: Na, K, Hb, WBC, pH, CSF)..." oninput="filterLabValues()" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface-elevated); color:var(--text); margin-bottom:10px;">
-            <div id="lab-values-body" style="max-height:52vh; overflow-y:auto;"></div>
-        </div>
-    </div>
-
-    <!-- ط) نافذة الإشعارات والرسائل -->
+    <!-- ز) نافذة الإشعارات والرسائل -->
     <div id="modal-notifs" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('notifs')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">🔔 آخر التحديثات والرسائل</h3>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="notifsModalTitle">🔔 آخر التحديثات والرسائل</h3>
             <div id="mq-notif-list" style="margin-top:10px; max-height:58vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
         </div>
     </div>
 
-    <!-- ي) نافذة مساهمة الطالب برفع أسئلة -->
+    <!-- ح) نافذة مساهمة الطالب برفع أسئلة -->
     <div id="modal-contribute" class="modal-overlay">
         <div class="modal-card" style="max-width:600px;">
             <button type="button" class="close-btn" onclick="closeModal('contribute')">✖</button>
-            <h3 style="margin-top:0; color:var(--gold);">📤 شارك أسئلتك مع الدفعة باسمك</h3>
+            <h3 style="margin-top:0; color:var(--gold);" data-i18n="contrModalTitle">📤 شارك أسئلتك مع الدفعة باسمك</h3>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
                 <input type="text" id="uq-name" placeholder="اسمك (د. أحمد...)" style="width:100%; padding:9px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1px solid var(--border);">
                 <select id="uq-year" style="width:100%; padding:9px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1px solid var(--border);">
-                    <option value="الفرقة الأولى">الفرقة الأولى</option>
-                    <option value="الفرقة الثانية">الفرقة الثانية</option>
-                    <option value="الفرقة الثالثة">الفرقة الثالثة</option>
-                    <option value="الفرقة الرابعة">الفرقة الرابعة</option>
-                    <option value="الفرقة الخامسة">الفرقة الخامسة</option>
+                    <option value="الفرقة الأولى">الفرقة الأولى / Year 1</option>
+                    <option value="الفرقة الثانية">الفرقة الثانية / Year 2</option>
+                    <option value="الفرقة الثالثة">الفرقة الثالثة / Year 3</option>
+                    <option value="الفرقة الرابعة">الفرقة الرابعة / Year 4</option>
+                    <option value="الفرقة الخامسة">الفرقة الخامسة / Year 5</option>
                 </select>
             </div>
             <input type="text" id="uq-module" placeholder="الموديول أو الراوند (CNS, Cardio...)" style="width:100%; padding:9px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1px solid var(--border); margin-bottom:8px;">
@@ -434,7 +450,7 @@
 
     <script>
     /* ==========================================================================
-       MEDCORE Unified Student Engine (v2026.5 Clean & Complete Architecture)
+       MEDCORE Unified Student Engine (v2026.6 — Bilingual + Rocket Search + AI)
        ========================================================================== */
     const firebaseConfig = {
         apiKey: "AIzaSyAElUTnaXitLw35Hb55kQWoe1AdbGO1t8A",
@@ -449,10 +465,175 @@
     const db = firebase.firestore();
     const rtdb = firebase.database();
 
-    // ضع رابط الـ Cloudflare Worker الخاص بك هنا:
-    const AI_WORKER_ENDPOINT = "https://medcore-ai-proxy.YOUR-SUBDOMAIN.workers.dev";
+    // الرابط الرسمي لخادم Cloudflare Worker الخاص بك
+    const AI_WORKER_ENDPOINT = "https://medcore-ai-proxy.ma7moud01030382018.workers.dev/";
 
-    // إزالة أي نص CSS شارد قد يكون عالقاً في الصفحة (مثل i18n Direction Protection)
+    // قاموس الترجمة الشامل لواجهة الموقع (عربي / إنجليزي)
+    const UI_TRANSLATIONS = {
+        ar: {
+            labsBtn: "القيم المعملية",
+            calcBtn: "الحاسبات الطبية",
+            mnemonicBtn: "مختصرات الحفظ",
+            termsBtn: "قاموس المصطلحات الطبية",
+            menuBtn: "القائمة",
+            sidebarTitle: "🩺 قائمة خدمات MEDCORE",
+            complaintsBtn: "الشكاوى والاقتراحات",
+            notifsBtn: "التحديثات والرسائل",
+            newBadge: "جديد",
+            arenaBtn: "ساحة التحدي (MedQuiz Arena)",
+            modulesBtn: "التجميعات والموديولات الشاملة",
+            errorBankBtn: "بنك أخطائك",
+            scoreHistoryBtn: "سجل درجاتك",
+            aiModelsBtn: "محركات MEDCORE AI",
+            promoBtn: "تفعيل كود باقة إضافية",
+            contributeBtn: "ارفع أسئلة باسمك للدفعة",
+            close: "✖ إغلاق",
+            tgBannerMain: "📢 قناة MEDCORE الرسمية لتجميعات الأسئلة والامتحانات 🎯 اضغط هنا ✨",
+            prominentCompText: "📣 عندك شكوى، ملاحظة علمية، أو اقتراح لتطوير الموقع؟",
+            prominentCompCta: "تواصل معنا ✍️",
+            quickModules: "الموديولات الشاملة",
+            quickArena: "ساحة التحدي",
+            quickErrors: "بنك أخطائك",
+            quickScores: "سجل درجاتك",
+            loadingTitle: "جاري تحضير المادة العلمية...",
+            loadingSub: "يرجى الانتظار للحظات يا دكتور",
+            welcomeTitle: "أهلاً بك في MEDCORE يا دكتور 👨‍⚕️🩺",
+            welcomeSub: "💡 حدد أي مصطلح إنجليزي أثناء الحل لترجمته فوراً، واستخدم محرك MEDCORE AI لشرح ومناقشة أي سؤال طبياً.",
+            searchLabel: "🔍 ابحث باسم المحاضرة أو الموضوع الطبي:",
+            searchPlaceholder: "اكتب اسم المحاضرة حتى لو بالتقريب (مثال: Autonomic, Cranial, Cardio)...",
+            aiSearchBtn: "بحث ذكي",
+            browseModulesBtn: "تصفح الموديولات الشاملة",
+            challengeFriendsBtn: "تحدي الأصدقاء في هذه المحاضرة",
+            copyLinkBtn: "نسخ الرابط",
+            resumeNowBtn: "استكمال الاختبار فوراً",
+            startNewBtn: "بدء اختبار جديد",
+            step1Title: "1️⃣ اختر نطاق الاختبار:",
+            scopeAll: "📚 المحاضرة كاملة",
+            scopeErrors: "⚠️ أخطاؤك السابقة في هذه المحاضرة",
+            scopeParts: "🧩 تحديد أجزاء (Parts) معينة",
+            nextBtn: "التالي ➡️",
+            backBtn: "رجوع",
+            step2Title: "2️⃣ عدد الأسئلة المطلوبة:",
+            availableTxt: "المتاح",
+            step3Title: "3️⃣ نظام عرض الإجابات:",
+            modeInstant: "⚡ تصحيح فوري (مع الشرح ومناقشة MEDCORE AI)",
+            modeExam: "📝 نظام امتحان (التصحيح والمراجعة الكاملة في النهاية)",
+            step4Title: "4️⃣ وقت الاختبار:",
+            timeOpen: "🔓 بدون وقت (مفتوح للمذاكرة بتركيز)",
+            timeOfficial: "⏱️ بوقت رسمي (45 ثانية لكل سؤال)",
+            savedBtn: "المحفوظات",
+            finishBtn: "إنهاء",
+            finalResultTitle: "النتيجة النهائية 📊",
+            weakPartsTitle: "⚠️ أجزاء تحتاج مراجعة (أقل من 60%):",
+            shareResultBtn: "مشاركة النتيجة للمنافسة",
+            retryBtn: "إعادة الاختبار",
+            instantDictTitle: "🩺 القاموس والمترجم الطبي الفوري",
+            compModalTitle: "📣 صندوق الشكاوى والاقتراحات",
+            compModalSub: "رسالتك تصل مباشرة لإدارة MEDCORE، يمكنك كتابة أي اقتراح أو ملاحظة علمية:",
+            sendBtn: "إرسال الآن ✅",
+            aiSysTitle: "🤖 محركات MEDCORE AI الذكية",
+            aiSysSub: "يعمل النظام على اختيار المحرك الطبي الأنسب تلقائياً لكل سؤال حسب مستواه العلمي لضمان أعلى دقة وأسرع استجابة:",
+            activeAuto: "متاح تلقائياً",
+            activeCases: "نشط للحالات الإكلينيكية",
+            liteDesc: "محرك فائق السرعة للأسئلة المباشرة، والمختصرات الطبية، والمناقشات السريعة.",
+            speedDesc: "يجمع بين السرعة العالية والدقة الأكاديمية في تفكيك أسئلة الاختيار من متعدد واستبعاد البدائل.",
+            brainDesc: "مخصص لتحليل الحالات السريرية (Clinical Cases) وربط الأعراض بالتحاليل الطبية.",
+            ultraLocked: "🔒 غير متاح حالياً للمستخدمين",
+            ultraUnlocked: "👑 مفعل حالياً",
+            ultraDesc: "الإصدار الأعلى دقة بقدرات الاستنتاج الطبي المتقدم والتشخيص التفريقي الشامل.",
+            promoModalTitle: "🎁 تفعيل كود باقة MEDCORE AI",
+            promoModalSub: "أدخل كود التفعيل المخصص للدفعة:",
+            activateBtn: "تفعيل الكود الآن ✨",
+            scoreModalTitle: "📊 سجل التقدم والدرجات",
+            errorsModalTitle: "⚠️ بنك الأخطاء الذكي",
+            errorsModalSub: "💡 السؤال الذي تجيبه بشكل صحيح مرتين متتاليتين أثناء مراجعة أخطائك يُزال تلقائياً بعد إتقانه.",
+            landmarksModalTitle: "🔖 الأسئلة المحفوظة للمراجعة",
+            notifsModalTitle: "🔔 آخر التحديثات والرسائل",
+            contrModalTitle: "📤 شارك أسئلتك مع الدفعة باسمك"
+        },
+        en: {
+            labsBtn: "Lab Values",
+            calcBtn: "Calculators",
+            mnemonicBtn: "Mnemonics",
+            termsBtn: "Medical Dictionary",
+            menuBtn: "Menu",
+            sidebarTitle: "🩺 MEDCORE Services",
+            complaintsBtn: "Complaints & Suggestions",
+            notifsBtn: "Updates & Messages",
+            newBadge: "New",
+            arenaBtn: "MedQuiz Arena (Live Challenge)",
+            modulesBtn: "Comprehensive Modules",
+            errorBankBtn: "Smart Error Bank",
+            scoreHistoryBtn: "Score History",
+            aiModelsBtn: "MEDCORE AI Engines",
+            promoBtn: "Activate Promo Code",
+            contributeBtn: "Share Questions with Batch",
+            close: "✖ Close",
+            tgBannerMain: "📢 Official MEDCORE Telegram Channel for Quizzes & Past Papers 🎯 Click Here ✨",
+            prominentCompText: "📣 Have a complaint, scientific note, or suggestion?",
+            prominentCompCta: "Contact Us ✍️",
+            quickModules: "Modules",
+            quickArena: "Live Arena",
+            quickErrors: "Error Bank",
+            quickScores: "My Scores",
+            loadingTitle: "Preparing Medical Content...",
+            loadingSub: "Please wait a moment, Doctor",
+            welcomeTitle: "Welcome to MEDCORE, Doctor 👨‍⚕️🩺",
+            welcomeSub: "💡 Select any English term during a quiz for instant translation, and use MEDCORE AI to discuss any question.",
+            searchLabel: "🔍 Search by Lecture Title or Medical Topic:",
+            searchPlaceholder: "Type lecture title or topic (e.g. Autonomic, Cranial, Cardio)...",
+            aiSearchBtn: "AI Search",
+            browseModulesBtn: "Browse Comprehensive Modules",
+            challengeFriendsBtn: "Challenge Friends in this Lecture",
+            copyLinkBtn: "Copy Link",
+            resumeNowBtn: "Resume Quiz Immediately",
+            startNewBtn: "Start New Quiz",
+            step1Title: "1️⃣ Select Quiz Scope:",
+            scopeAll: "📚 Full Lecture",
+            scopeErrors: "⚠️ Your Previous Errors in this Lecture",
+            scopeParts: "🧩 Select Specific Parts",
+            nextBtn: "Next ➡️",
+            backBtn: "Back",
+            step2Title: "2️⃣ Number of Questions:",
+            availableTxt: "Available",
+            step3Title: "3️⃣ Answer Display Mode:",
+            modeInstant: "⚡ Instant Feedback (with Explanation & MEDCORE AI Chat)",
+            modeExam: "📝 Exam Mode (Final Score & Full Review at the End)",
+            step4Title: "4️⃣ Quiz Timer:",
+            timeOpen: "🔓 Untimed (Open Study Mode)",
+            timeOfficial: "⏱️ Official Timer (45 seconds per question)",
+            savedBtn: "Bookmarks",
+            finishBtn: "Finish",
+            finalResultTitle: "Final Result 📊",
+            weakPartsTitle: "⚠️ Parts Needing Review (< 60%):",
+            shareResultBtn: "Share Score to Compete",
+            retryBtn: "Retry Quiz",
+            instantDictTitle: "🩺 Instant Medical Dictionary & Translator",
+            compModalTitle: "📣 Complaints & Suggestions",
+            compModalSub: "Your message goes directly to MEDCORE administration:",
+            sendBtn: "Send Now ✅",
+            aiSysTitle: "🤖 MEDCORE AI Smart Engines",
+            aiSysSub: "The platform automatically selects the optimal medical engine for each question based on clinical complexity:",
+            activeAuto: "Auto-Active",
+            activeCases: "Active for Clinical Cases",
+            liteDesc: "Ultra-fast engine for direct questions, medical mnemonics, and quick discussions.",
+            speedDesc: "Balances high speed with academic accuracy for MCQ analysis and option rule-out.",
+            brainDesc: "Dedicated to complex Clinical Cases and correlating symptoms with lab findings.",
+            ultraLocked: "🔒 Currently unavailable for users",
+            ultraUnlocked: "👑 Currently Active",
+            ultraDesc: "Highest accuracy tier with advanced clinical reasoning and differential diagnosis.",
+            promoModalTitle: "🎁 Activate MEDCORE AI Promo Code",
+            promoModalSub: "Enter your batch activation code:",
+            activateBtn: "Activate Code ✨",
+            scoreModalTitle: "📊 Progress & Score History",
+            errorsModalTitle: "⚠️ Smart Error Bank",
+            errorsModalSub: "💡 Questions answered correctly twice in a row during error review are automatically mastered and removed.",
+            landmarksModalTitle: "🔖 Bookmarked Questions",
+            notifsModalTitle: "🔔 Latest Updates & Messages",
+            contrModalTitle: "📤 Share Questions with Your Batch"
+        }
+    };
+
     function cleanStrayTextNodes() {
         Array.from(document.body.childNodes).forEach(node => {
             if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('i18n Direction') || node.nodeValue.includes('/* ==='))) {
@@ -477,7 +658,6 @@
         return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
     }
 
-    // توليد مفتاح بصمة قصير للسؤال لاستخدامه في الكاش السحابي المشترك (Shared Firebase AI Cache)
     function hashQuestionKey(str) {
         const clean = stripHTML(str).toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g, '');
         let h = 2166136261;
@@ -500,6 +680,52 @@
         }
     }
 
+    function getAppLang() {
+        return localStorage.getItem('mq_lang') || 'ar';
+    }
+
+    function uiTxt(key) {
+        const lang = getAppLang();
+        return (UI_TRANSLATIONS[lang] && UI_TRANSLATIONS[lang][key]) || UI_TRANSLATIONS.ar[key] || key;
+    }
+
+    function applyLanguageToDOM() {
+        const lang = getAppLang();
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.body.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+        document.body.style.textAlign = lang === 'ar' ? 'right' : 'left';
+
+        const langBtn = document.getElementById('lang-toggle-btn');
+        if (langBtn) langBtn.innerText = lang === 'ar' ? '🌐 EN' : '🌐 عربي';
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const k = el.getAttribute('data-i18n');
+            if (UI_TRANSLATIONS[lang] && UI_TRANSLATIONS[lang][k]) {
+                el.innerText = UI_TRANSLATIONS[lang][k];
+            }
+        });
+
+        const searchInp = document.getElementById('home-catalog-search');
+        if (searchInp) searchInp.placeholder = uiTxt('searchPlaceholder');
+
+        updateUltraBadgeText();
+    }
+
+    function toggleAppLanguage() {
+        const nextLang = getAppLang() === 'ar' ? 'en' : 'ar';
+        if (typeof window.mqSetLang === 'function') window.mqSetLang(nextLang);
+        else safeSetLocalStorage('mq_lang', nextLang);
+        applyLanguageToDOM();
+
+        // إبلاغ نافذة الأدوات المفتوحة (new.html) بتغيير اللغة لحظياً
+        const iframe = document.getElementById('hub-iframe-view');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'MQ_SET_LANG', lang: nextLang }, '*');
+        }
+        onRocketSearchInput();
+    }
+
     function showToast(msg) {
         const t = document.createElement('div');
         t.className = 'med-toast';
@@ -519,7 +745,7 @@
             <div class="modal-card" style="max-width:410px; text-align:center;">
                 <div style="font-size:2.5rem; margin-bottom:8px;">🩺</div>
                 <p style="font-size:1rem; font-weight:800; line-height:1.6; margin-bottom:18px;">${escapeHTML(msg)}</p>
-                <button type="button" id="confirm-med-alert" class="btn-nav btn-gold" style="width:100%;">حسناً يا دكتور</button>
+                <button type="button" id="confirm-med-alert" class="btn-nav btn-gold" style="width:100%;">${getAppLang() === 'en' ? 'OK, Doctor' : 'حسناً يا دكتور'}</button>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -538,7 +764,12 @@
 
     function toggleTheme() {
         const isLight = document.body.classList.toggle('light-theme');
-        safeSetLocalStorage('mq-theme-v13', isLight ? 'light' : 'dark');
+        const themeName = isLight ? 'light' : 'dark';
+        safeSetLocalStorage('mq-theme-v13', themeName);
+        const iframe = document.getElementById('hub-iframe-view');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'MQ_SET_THEME', theme: themeName }, '*');
+        }
     }
 
     function toggleSidebar(open) {
@@ -548,7 +779,71 @@
         else { sb.classList.remove('open'); ov.style.display = 'none'; }
     }
 
-    // معرف الجهاز الموحد + التحقق التلقائي من ختم الأدمن (mq_admin_ultra_pass) وحالة حظر الشات
+    // ==========================================================================
+    // بوابة فتح الأدوات وساحة التحدي عبر new.html (مقفولة على المحاضرة الحالية)
+    // ==========================================================================
+    function openHubTool(tabName, extraParams = {}) {
+        const overlay = document.getElementById('hub-iframe-overlay');
+        const iframe = document.getElementById('hub-iframe-view');
+        const titleEl = document.getElementById('hub-iframe-title');
+
+        const lang = getAppLang();
+        const theme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+
+        const titlesMap = {
+            labs: lang === 'en' ? '🧪 Clinical Lab Values Reference (589 Tests)' : '🧪 موسوعة القيم المعملية المرجعية (589 تحليلاً)',
+            calc: lang === 'en' ? '🧮 Clinical Medical Calculators (37 Tools)' : '🧮 الحاسبات الطبية السريرية (37 حاسبة)',
+            mnemonic: lang === 'en' ? '🧠 MedMnemonic AI Generator' : '🧠 صانع المختصرات الطبية (MedMnemonic AI)',
+            terms: lang === 'en' ? '📖 Medical Terminology Dictionary' : '📖 قاموس المصطلحات والاختصارات الطبية',
+            arena: lang === 'en' ? '⚔️ MedQuiz Live Arena' : '⚔️ ساحة التحدي المباشر (MedQuiz Arena)'
+        };
+        titleEl.innerText = titlesMap[tabName] || '🩺 MEDCORE Hub';
+
+        const urlParams = new URLSearchParams();
+        urlParams.set('tab', tabName);
+        urlParams.set('lang', lang);
+        urlParams.set('theme', theme);
+        if (state.id && state.id !== 'combo_test' && state.id !== 'error_bank') {
+            urlParams.set('lecId', state.id);
+            urlParams.set('lecTitle', state.title || state.id);
+        } else {
+            const pageParamId = (new URLSearchParams(window.location.search).get('id') || '').trim();
+            if (pageParamId) {
+                urlParams.set('lecId', pageParamId);
+                urlParams.set('lecTitle', state.title || pageParamId);
+            }
+        }
+        Object.keys(extraParams).forEach(k => {
+            if (extraParams[k]) urlParams.set(k, extraParams[k]);
+        });
+
+        iframe.src = `new.html?${urlParams.toString()}`;
+        overlay.style.display = 'flex';
+    }
+
+    function closeHubTool() {
+        const overlay = document.getElementById('hub-iframe-overlay');
+        const iframe = document.getElementById('hub-iframe-view');
+        overlay.style.display = 'none';
+        iframe.src = 'about:blank';
+    }
+
+    function openArenaForCurrentLecture(roomParam = null) {
+        const pageParams = new URLSearchParams(window.location.search);
+        const currentLecId = state.id || (pageParams.get('id') || '').trim();
+        const roomCode = roomParam || (pageParams.get('room') || '').trim();
+
+        if (!currentLecId && !roomCode) {
+            return showMedAlert(
+                getAppLang() === 'en'
+                    ? "⚠️ To create a challenge room, please open the lecture link first, then click on Live Arena."
+                    : "⚠️ لإنشاء غرفة تحدي، يرجى فتح رابط المحاضرة أولاً ثم الضغط على زر ساحة التحدي لتفتح على محاضرتك مباشرة."
+            );
+        }
+        openHubTool('arena', { room: roomCode, lecId: currentLecId, lecTitle: state.title || currentLecId });
+    }
+
+    // معرف الجهاز وحالة حظر الشات
     let deviceId = localStorage.getItem('mq_device_id');
     if (!deviceId) {
         deviceId = 'DEV-' + Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -559,6 +854,22 @@
         return localStorage.getItem('mq_admin_ultra_pass') === 'MEDCORE_LEADER_ULTRA_2026';
     }
 
+    function updateUltraBadgeText() {
+        const pill = document.getElementById('ultra-status-pill');
+        if (!pill) return;
+        if (isAdminUltraUnlocked()) {
+            pill.style.background = 'var(--success-light)';
+            pill.style.color = 'var(--success)';
+            pill.style.borderColor = 'var(--success)';
+            pill.innerText = uiTxt('ultraUnlocked');
+        } else {
+            pill.style.background = 'var(--error-light)';
+            pill.style.color = 'var(--error)';
+            pill.style.borderColor = 'var(--error)';
+            pill.innerText = uiTxt('ultraLocked');
+        }
+    }
+
     let isAiChatBanned = localStorage.getItem('mq_ai_chat_banned') === 'true';
 
     function syncAiBanStatusFromServer() {
@@ -567,7 +878,6 @@
                 isAiChatBanned = true;
                 safeSetLocalStorage('mq_ai_chat_banned', 'true');
             } else {
-                // إذا قام الأدمن بفك الحظر من لوحة الإدارة، يُرفع الحظر وتُصفر الإنذارات فوراً
                 if (isAiChatBanned) {
                     isAiChatBanned = false;
                     localStorage.removeItem('mq_ai_chat_banned');
@@ -623,7 +933,7 @@
         const banner = document.getElementById('telegram-dynamic-banner');
         const mainTxt = document.getElementById('tg-banner-main-txt');
         const matched = rules.find(r => r.pattern.test(currentId || ''));
-        if (matched && banner && mainTxt) {
+        if (matched && banner && mainTxt && getAppLang() === 'ar') {
             banner.href = matched.link;
             mainTxt.innerHTML = `📢 للمزيد من الأسئلة والاختبارات ${matched.text} اضغط هنا ✨`;
         }
@@ -631,22 +941,13 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
         cleanStrayTextNodes();
+        applyLanguageToDOM();
         updateErrorBadgeCount();
         syncAiBanStatusFromServer();
         initRadarAndTracker();
         initNotificationCenter();
         initMedicalDictionary();
         initKeyboardShortcuts();
-
-        if (isAdminUltraUnlocked()) {
-            const pill = document.getElementById('ultra-status-pill');
-            if (pill) {
-                pill.style.background = 'var(--success-light)';
-                pill.style.color = 'var(--success)';
-                pill.style.borderColor = 'var(--success)';
-                pill.innerText = '👑 مفعل لك تلقائياً (وضع القيادة)';
-            }
-        }
 
         const params = new URLSearchParams(window.location.search);
         const rawId = (params.get('id') || '').trim();
@@ -658,7 +959,9 @@
         setupDynamicTelegramBanner(rawId || ospeId);
 
         if (isArena) {
-            launchArenaEngine(params.get('room'));
+            document.getElementById('home-view').style.display = 'block';
+            renderHomeCatalog();
+            openArenaForCurrentLecture(params.get('room'));
             return;
         }
         if (ospeId) {
@@ -696,7 +999,258 @@
     });
 
     // ==========================================================================
-    // 1. منظومة MEDCORE AI الذكية (التوجيه التلقائي + الكاش السحابي + الشات + الحظر)
+    // 1. محرك البحث الصاروخي الذكي (Rocket Fuzzy Search + Full DB Sync + Gemma AI)
+    // ==========================================================================
+    function normalizeSearchString(str) {
+        return String(str || '')
+            .toLowerCase()
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/[\u064B-\u065F]/g, '') // إزالة التشكيل
+            .replace(/[^a-z0-9\u0600-\u06FF\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // حساب المسافة التقريبية بين كلمتين للتعامل مع الأخطاء الإملائية (Levenshtein Distance)
+    function editDistance(a, b) {
+        if (Math.abs(a.length - b.length) > 3) return 99;
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+                else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+            }
+        }
+        return matrix[b.length][a.length];
+    }
+
+    // حساب درجة تطابق المحاضرة مع بحث الطالب (يركز على اسم المحاضرة title والأجزاء parts)
+    function computeLectureSearchScore(item, rawQuery) {
+        const qNorm = normalizeSearchString(rawQuery);
+        if (!qNorm) return 1;
+
+        const titleNorm = normalizeSearchString(item.title || '');
+        const partsNorm = normalizeSearchString(item.parts || '');
+        const idNorm = normalizeSearchString(item.id || '');
+        const fullTarget = `${titleNorm} ${partsNorm}`;
+
+        // 1. تطابق كامل للعبارة في عنوان المحاضرة
+        if (titleNorm === qNorm) return 1000;
+        if (titleNorm.startsWith(qNorm)) return 850;
+        if (titleNorm.includes(qNorm)) return 700;
+        if (partsNorm.includes(qNorm)) return 500;
+        if (idNorm.includes(qNorm)) return 400;
+
+        // 2. البحث بالكلمات المتفرقة والتقريبية (Token & Fuzzy Matching)
+        const qTokens = qNorm.split(' ').filter(Boolean);
+        const titleWords = fullTarget.split(' ').filter(Boolean);
+        let totalScore = 0;
+        let matchedTokens = 0;
+
+        for (const qt of qTokens) {
+            let bestTokenScore = 0;
+            for (const tw of titleWords) {
+                if (tw === qt) {
+                    bestTokenScore = Math.max(bestTokenScore, 120);
+                } else if (tw.startsWith(qt) || qt.startsWith(tw)) {
+                    bestTokenScore = Math.max(bestTokenScore, 90);
+                } else if (tw.includes(qt)) {
+                    bestTokenScore = Math.max(bestTokenScore, 70);
+                } else if (qt.length >= 4 && tw.length >= 4) {
+                    const dist = editDistance(qt, tw);
+                    if (dist === 1) bestTokenScore = Math.max(bestTokenScore, 65);
+                    else if (dist === 2 && qt.length >= 6) bestTokenScore = Math.max(bestTokenScore, 45);
+                }
+            }
+            if (bestTokenScore > 0) {
+                matchedTokens++;
+                totalScore += bestTokenScore;
+            }
+        }
+
+        if (matchedTokens === 0) return 0;
+        // مكافأة إضافية إذا تطابقت جميع كلمات البحث
+        if (matchedTokens === qTokens.length) totalScore += 150;
+        return totalScore;
+    }
+
+    // جلب كل المحاضرات الموجودة في الداتا بيز بالكامل بدون حد الـ 60 محاضرة!
+    async function getLecturesCatalog(forceFullSync = false) {
+        if (state.catalogCache.length > 0 && !forceFullSync) return state.catalogCache;
+
+        // 1. محاولة القراءة الفورية من فهرس RTDB السريع (lectures_search_index)
+        if (!forceFullSync) {
+            try {
+                const rtdbSnap = await rtdb.ref('lectures_search_index').once('value');
+                if (rtdbSnap.exists()) {
+                    const val = rtdbSnap.val();
+                    const list = Array.isArray(val) ? val : Object.values(val || {});
+                    if (list.length > 0) {
+                        state.catalogCache = list;
+                        updateCatalogCountBadge(list.length);
+                        return state.catalogCache;
+                    }
+                }
+            } catch (_) {}
+
+            // 2. محاولة القراءة من metadata/catalog في Firestore
+            try {
+                const catDoc = await db.collection('metadata').doc('catalog').get();
+                if (catDoc.exists && Array.isArray(catDoc.data().items) && catDoc.data().items.length > 0) {
+                    state.catalogCache = catDoc.data().items;
+                    updateCatalogCountBadge(state.catalogCache.length);
+                    // حفظ نسخة في RTDB لسرعة الصاروخ في المرات القادمة
+                    rtdb.ref('lectures_search_index').set(state.catalogCache).catch(() => {});
+                    return state.catalogCache;
+                }
+            } catch (_) {}
+        }
+
+        // 3. إذا لم يكن الفهرس كاملاً، نسحب كل المحاضرات من Firestore بالكامل (بدون limit) ونحفظ عناوينها!
+        const snap = await db.collection('lectures').get();
+        const items = [];
+        snap.forEach(d => {
+            const data = d.data();
+            const qs = Array.isArray(data.questions) ? data.questions : [];
+            if (qs.length > 0) {
+                const uniqueParts = Array.from(new Set(qs.map(q => q.p).filter(Boolean))).slice(0, 8).join(' | ');
+                items.push({
+                    id: d.id,
+                    title: data.title || d.id,
+                    parts: uniqueParts,
+                    module: data.module || '',
+                    qCount: qs.length
+                });
+            }
+        });
+
+        state.catalogCache = items;
+        updateCatalogCountBadge(items.length);
+
+        // حفظ الفهرس الكامل في RTDB و Firestore ليستفيد منه جميع الطلاب في 0.001 ثانية
+        if (items.length > 0) {
+            rtdb.ref('lectures_search_index').set(items).catch(() => {});
+            db.collection('metadata').doc('catalog').set({
+                items,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).catch(() => {});
+        }
+        return items;
+    }
+
+    function updateCatalogCountBadge(count) {
+        const badge = document.getElementById('catalog-total-badge');
+        if (badge) {
+            badge.innerText = getAppLang() === 'en' ? `${count} Lectures Ready` : `${count} محاضرة متاحة`;
+        }
+    }
+
+    async function renderHomeCatalog() {
+        const list = document.getElementById('home-catalog-list');
+        if (!list) return;
+        list.innerHTML = `<span style="color:var(--text-muted); font-size:0.84rem;">⏳ ${uiTxt('loadingTitle')}</span>`;
+        await getLecturesCatalog();
+        onRocketSearchInput();
+    }
+
+    function onRocketSearchInput() {
+        const list = document.getElementById('home-catalog-list');
+        const statusEl = document.getElementById('ai-search-status');
+        if (!list) return;
+        if (statusEl) statusEl.style.display = 'none';
+
+        const rawQ = (document.getElementById('home-catalog-search')?.value || '').trim();
+        let scored = [];
+
+        if (!rawQ) {
+            scored = state.catalogCache.slice(0, 40).map(item => ({ item, score: 1 }));
+        } else {
+            state.catalogCache.forEach(item => {
+                const sc = computeLectureSearchScore(item, rawQ);
+                if (sc > 0) scored.push({ item, score: sc });
+            });
+            scored.sort((a, b) => b.score - a.score);
+            scored = scored.slice(0, 35);
+        }
+
+        renderCatalogItemsList(scored.map(s => s.item), rawQ);
+    }
+
+    function renderCatalogItemsList(itemsArray, rawQuery = '') {
+        const list = document.getElementById('home-catalog-list');
+        if (!list) return;
+
+        if (itemsArray.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.86rem;">
+                    <div>${getAppLang() === 'en' ? 'No direct match found.' : 'لم يتم العثور على تطابق حرفي مباشر.'}</div>
+                    ${rawQuery ? `<button type="button" class="btn-nav btn-gold" style="margin-top:8px;" onclick="triggerAiSmartCatalogSearch()">🤖 ${getAppLang() === 'en' ? 'Find Closest Lectures with AI' : 'ابحث بالمعنى العلمي عبر الذكاء الاصطناعي'}</button>` : ''}
+                </div>
+            `;
+            return;
+        }
+
+        const qLabel = getAppLang() === 'en' ? 'Qs' : 'سؤال';
+        list.innerHTML = itemsArray.map(item => `
+            <a href="?id=${encodeURIComponent(item.id)}" class="config-btn" style="text-decoration:none; margin-top:0; padding:11px 14px;">
+                <div style="display:flex; flex-direction:column; gap:2px; text-align:start;">
+                    <span style="font-weight:900; color:var(--text);">🩺 ${escapeHTML(item.title)}</span>
+                    ${item.parts ? `<small style="color:var(--text-muted); font-size:0.75rem;">🧩 ${escapeHTML(item.parts)}</small>` : ''}
+                </div>
+                <span class="status-pill">${Number(item.qCount) || 0} ${qLabel} ➡️</span>
+            </a>
+        `).join('');
+    }
+
+    // البحث الدلالي الذكي عبر الذكاء الاصطناعي (يرسل عناوين المحاضرات لنموذج Gemma 4 31B صاحب الـ 14,400 طلب/يوم)
+    async function triggerAiSmartCatalogSearch() {
+        const rawQ = (document.getElementById('home-catalog-search')?.value || '').trim();
+        if (!rawQ) return;
+
+        const statusEl = document.getElementById('ai-search-status');
+        const btn = document.getElementById('btn-ai-smart-search');
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.innerText = getAppLang() === 'en' ? '🤖 AI is ranking the closest lectures to your topic...' : '🤖 جاري ترتيب أقرب المحاضرات علمياً لبحثك...';
+        }
+        if (btn) btn.disabled = true;
+
+        try {
+            const catalog = await getLecturesCatalog();
+            const compactList = catalog.map((c, idx) => `${idx}:${c.title}`).join('\n');
+
+            const res = await fetch(AI_WORKER_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    task: 'smart_search',
+                    query: rawQ,
+                    catalogText: compactList
+                })
+            });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.matchedIndices) && data.matchedIndices.length > 0) {
+                const ranked = data.matchedIndices.map(i => catalog[i]).filter(Boolean);
+                if (ranked.length > 0) {
+                    renderCatalogItemsList(ranked, rawQ);
+                    if (statusEl) statusEl.innerText = getAppLang() === 'en' ? '✨ Ranked by MEDCORE AI Semantic Search:' : '✨ تم ترتيب أقرب المحاضرات لبحثك بواسطة الذكاء الاصطناعي:';
+                    return;
+                }
+            }
+            onRocketSearchInput();
+        } catch (_) {
+            onRocketSearchInput();
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    // ==========================================================================
+    // 2. منظومة MEDCORE AI الذكية (التوجيه التلقائي + الكاش السحابي + الشات + الحظر)
     // ==========================================================================
     const OBVIOUS_NON_MEDICAL_REGEX = /(الأهلي|الزمالك|برشلونة|ريال مدريد|مباراة|كورة|انتخابات|سياسة|طبخ|طريقة عمل|نكتة|قولي نكته|كود برمجة|بايثون|جافاسكريبت)/i;
 
@@ -708,9 +1262,10 @@
         const chatWrap = document.getElementById(`ai-chat-wrap-${idx}`);
 
         panel.style.display = 'block';
-        const qHash = hashQuestionKey(q.q) + (quickAction ? `_${quickAction}` : '_main');
+        const lang = getAppLang();
+        const qHash = hashQuestionKey(q.q) + (quickAction ? `_${quickAction}` : '_main') + `_${lang}`;
 
-        // 1. فحص الكاش السحابي المشترك للدفعة أولاً (0 Token Cost & 0.1s Speed)
+        // 1. فحص الكاش السحابي المشترك أولاً (0.1s Speed)
         if (!isAdminUltraUnlocked()) {
             try {
                 const cacheSnap = await rtdb.ref('ai_explanations_cache/' + qHash).once('value');
@@ -725,7 +1280,9 @@
         }
 
         if (btn) btn.disabled = true;
-        expContent.innerHTML = `⏳ جاري التحليل الطبي واختيار المحرك الأنسب تلقائياً...`;
+        expContent.innerHTML = lang === 'en'
+            ? `⏳ Analyzing question via MEDCORE AI...`
+            : `⏳ جاري التحليل الطبي عبر محرك MEDCORE AI...`;
 
         try {
             const res = await fetch(AI_WORKER_ENDPOINT, {
@@ -734,6 +1291,7 @@
                 body: JSON.stringify({
                     task: quickAction ? 'quick_action' : 'explain',
                     quickAction,
+                    lang,
                     question: stripHTML(q.q),
                     options: q.options || [],
                     correctAnswer: q.a,
@@ -741,13 +1299,14 @@
                 })
             });
             const data = await res.json();
-            if (data.success && data.explanation) {
+            const replyText = data.explanation || data.reply || data.result || data.text || '';
+            if (data.success && replyText) {
                 const chosenModel = data.medcoreModel || 'Medcore Speed 3.5 🚀';
                 badgeEl.innerText = chosenModel;
-                expContent.innerHTML = escapeHTML(data.explanation);
+                expContent.innerHTML = escapeHTML(replyText);
 
                 rtdb.ref('ai_explanations_cache/' + qHash).set({
-                    text: data.explanation,
+                    text: replyText,
                     model: chosenModel,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 }).catch(() => {});
@@ -760,7 +1319,7 @@
                 expContent.innerHTML = `<span style="color:var(--error);">❌ ${escapeHTML(data.error || 'تعذر توليد الشرح حالياً')}</span>`;
             }
         } catch (err) {
-            expContent.innerHTML = `<span style="color:var(--error);">❌ تعذر الاتصال بمحرك MEDCORE AI.</span>`;
+            expContent.innerHTML = `<span style="color:var(--error);">❌ ${lang === 'en' ? 'Connection error with MEDCORE AI.' : 'تعذر الاتصال بمحرك MEDCORE AI.'}</span>`;
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -769,12 +1328,13 @@
     function renderAiChatSection(idx) {
         const chatWrap = document.getElementById(`ai-chat-wrap-${idx}`);
         if (!chatWrap) return;
+        const lang = getAppLang();
 
         if (isAiChatBanned && !isAdminUltraUnlocked()) {
             chatWrap.innerHTML = `
                 <div class="dynamic-section-box" style="margin:10px 0 0 0; text-align:center; font-size:0.84rem;">
-                    🔒 <b>تم إيقاف ميزة المحادثة التفاعلية لحسابك</b> بسبب الخروج المتكرر عن النطاق الطبي.<br>
-                    <small style="color:var(--text-muted);">الشرح الأساسي للأسئلة متاح لك، ولمراجعة الإدارة استخدم كود جهازك: <b>${escapeHTML(deviceId)}</b></small>
+                    🔒 <b>${lang === 'en' ? 'Interactive chat has been disabled for your account due to repeated non-medical queries.' : 'تم إيقاف ميزة المحادثة التفاعلية لحسابك بسبب الأسئلة خارج النطاق الطبي.'}</b><br>
+                    <small style="color:var(--text-muted);">${lang === 'en' ? 'Device ID:' : 'كود الجهاز للمراجعة:'} <b>${escapeHTML(deviceId)}</b></small>
                 </div>
             `;
             return;
@@ -786,17 +1346,17 @@
         chatWrap.innerHTML = `
             <div style="border-top:1px dashed var(--border); margin-top:12px; padding-top:10px;">
                 <div style="font-size:0.8rem; font-weight:800; color:var(--gold); margin-bottom:6px;">
-                    💬 ناقش محرك MEDCORE AI في تفاصيل هذا السؤال (طبياً فقط):
+                    💬 ${lang === 'en' ? 'Ask MEDCORE AI for more clinical details on this question:' : 'اسأل محرك MEDCORE AI عن أي تفصيلة طبية إضافية في هذا السؤال:'}
                 </div>
                 <div class="ai-quick-prompts-row">
-                    <button type="button" class="btn-chip" onclick="requestAiExplanation(${idx}, this, 'ruleout')">❓ ليه باقي الاختيارات غلط؟</button>
-                    <button type="button" class="btn-chip" onclick="requestAiExplanation(${idx}, this, 'clues')">🩺 أهم الكلمات المفتاحية (Clues)</button>
-                    <button type="button" class="btn-chip" onclick="requestQuestionMnemonic(${idx}, this)">🧠 اعمل لي Mnemonic للسؤال</button>
+                    <button type="button" class="btn-chip" onclick="requestAiExplanation(${idx}, this, 'ruleout')">❓ ${lang === 'en' ? 'Why are other options wrong?' : 'ليه باقي الاختيارات غلط؟'}</button>
+                    <button type="button" class="btn-chip" onclick="requestAiExplanation(${idx}, this, 'clues')">🩺 ${lang === 'en' ? 'Key Clues' : 'أهم الكلمات المفتاحية (Clues)'}</button>
+                    <button type="button" class="btn-chip" onclick="requestQuestionMnemonic(${idx}, this)">🧠 ${lang === 'en' ? 'Create Mnemonic' : 'اعمل لي Mnemonic للسؤال'}</button>
                 </div>
                 <div class="ai-chat-history" id="ai-chat-hist-${idx}"></div>
                 <div class="ai-chat-input-row">
-                    <input type="text" id="ai-chat-inp-${idx}" placeholder="اسأل عن أي تفصيلة طبية أو توضيح في هذا السؤال..." onkeydown="if(event.key==='Enter') sendAiFollowUpChat(${idx})" style="flex:1; padding:9px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-size:0.88rem;">
-                    <button type="button" id="ai-chat-btn-${idx}" class="btn-nav btn-gold" style="padding:8px 14px;" onclick="sendAiFollowUpChat(${idx})">إرسال ⬆️</button>
+                    <input type="text" id="ai-chat-inp-${idx}" placeholder="${lang === 'en' ? 'Ask a medical question about this case...' : 'اسأل عن أي تفصيلة طبية أو توضيح في هذا السؤال...'}" onkeydown="if(event.key==='Enter') sendAiFollowUpChat(${idx})" style="flex:1; padding:9px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-size:0.88rem;">
+                    <button type="button" id="ai-chat-btn-${idx}" class="btn-nav btn-gold" style="padding:8px 14px;" onclick="sendAiFollowUpChat(${idx})">${lang === 'en' ? 'Send ⬆️' : 'إرسال ⬆️'}</button>
                 </div>
             </div>
         `;
@@ -810,7 +1370,7 @@
         try {
             const cacheSnap = await rtdb.ref('ai_explanations_cache/' + qHash).once('value');
             if (cacheSnap.exists() && cacheSnap.val().text) {
-                appendChatBubble(histEl, "🧠 اعمل لي Mnemonic لهذا السؤال", cacheSnap.val().text);
+                appendChatBubble(histEl, "🧠 Mnemonic", cacheSnap.val().text);
                 return;
             }
         } catch (_) {}
@@ -826,10 +1386,11 @@
                 })
             });
             const data = await res.json();
-            if (data.success && data.mnemonic) {
-                appendChatBubble(histEl, "🧠 اعمل لي Mnemonic لهذا السؤال", data.mnemonic);
+            const replyText = data.mnemonic || data.explanation || data.reply || '';
+            if (data.success && replyText) {
+                appendChatBubble(histEl, "🧠 Mnemonic", replyText);
                 rtdb.ref('ai_explanations_cache/' + qHash).set({
-                    text: data.mnemonic,
+                    text: replyText,
                     model: data.medcoreModel || 'Medcore Speed Lite 2.5 ⚡'
                 }).catch(() => {});
             }
@@ -867,7 +1428,6 @@
 
         inp.value = '';
 
-        // 1. فحص الفلتر المحلي المسبق (Zero-Token Pre-Filter)
         if (OBVIOUS_NON_MEDICAL_REGEX.test(msg)) {
             handleOffTopicStrike(idx, msg, histEl);
             return;
@@ -883,6 +1443,7 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     task: 'chat',
+                    lang: getAppLang(),
                     question: stripHTML(q.q),
                     correctAnswer: q.a,
                     userMessage: msg,
@@ -891,12 +1452,13 @@
                 })
             });
             const data = await res.json();
+            const replyText = data.reply || data.explanation || data.text || '';
 
             if (data.offTopic && !isAdminUltraUnlocked()) {
                 handleOffTopicStrike(idx, msg, histEl);
-            } else if (data.success && data.reply) {
-                state.chatMemory[idx].push({ u: msg, a: data.reply });
-                appendChatBubble(histEl, msg, data.reply);
+            } else if (data.success && replyText) {
+                state.chatMemory[idx].push({ u: msg, a: replyText });
+                appendChatBubble(histEl, msg, replyText);
             } else {
                 appendChatBubble(histEl, msg, data.error || "تعذر الرد حالياً.");
             }
@@ -928,62 +1490,14 @@
             }).catch(() => {});
 
             renderAiChatSection(idx);
-            showMedAlert("🔒 تم إغلاق ميزة المحادثة التفاعلية لحسابك بسبب تكرار الأسئلة خارج النطاق الطبي للمرة الثانية. سيظل الشرح الأساسي للأسئلة فقط متاحاً لك.");
+            showMedAlert("🔒 تم إغلاق ميزة المحادثة التفاعلية لحسابك بسبب تكرار الأسئلة خارج النطاق الطبي للمرة الثانية. سيظل الشرح الأساسي للأسئلة متاحاً لك.");
         } else {
             appendChatBubble(
                 histEl,
                 offendingMsg,
-                "⚠️ تنبيه أكاديمي (إنذار 1 من 2): محرك MEDCORE AI مخصص للأسئلة والمناقشات الطبية فقط. تكرار السؤال خارج النطاق الطبي مرة أخرى سيؤدي لإغلاق ميزة الشات لحسابك تلقائياً!",
+                "⚠️ تنبيه أكاديمي (1/2): محرك MEDCORE AI مخصص للأسئلة والمناقشات الطبية فقط. تكرار الأسئلة خارج النطاق الطبي مرة أخرى سيؤدي لإغلاق ميزة الشات لحسابك تلقائياً.",
                 true
             );
-        }
-    }
-
-    function setMnemonicExample(txt) {
-        document.getElementById('mnemonic-input-txt').value = txt;
-        generateMedicalMnemonic();
-    }
-
-    async function generateMedicalMnemonic() {
-        const inp = document.getElementById('mnemonic-input-txt').value.trim();
-        const out = document.getElementById('mnemonic-output-box');
-        const btn = document.getElementById('btn-gen-mnemonic');
-        if (!inp) return showMedAlert("يرجى كتابة القائمة الطبية أو اختيار أحد الأمثلة الجاهزة أولاً.");
-
-        out.style.display = 'block';
-        const mHash = hashQuestionKey('mnem_' + inp);
-
-        try {
-            const cSnap = await rtdb.ref('ai_explanations_cache/' + mHash).once('value');
-            if (cSnap.exists() && cSnap.val().text) {
-                out.innerText = cSnap.val().text;
-                return;
-            }
-        } catch (_) {}
-
-        btn.disabled = true;
-        out.innerText = '⏳ جاري ابتكار المختصر الطبي عبر Medcore Speed Lite 2.5...';
-
-        try {
-            const res = await fetch(AI_WORKER_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ task: 'mnemonic', items: inp })
-            });
-            const data = await res.json();
-            if (data.success && data.mnemonic) {
-                out.innerText = data.mnemonic;
-                rtdb.ref('ai_explanations_cache/' + mHash).set({
-                    text: data.mnemonic,
-                    model: data.medcoreModel || 'Medcore Speed Lite 2.5 ⚡'
-                }).catch(() => {});
-            } else {
-                out.innerText = '❌ ' + (data.error || 'تعذر إنشاء المختصر حالياً.');
-            }
-        } catch (e) {
-            out.innerText = '❌ تعذر الاتصال بمحرك MEDCORE AI.';
-        } finally {
-            btn.disabled = false;
         }
     }
 
@@ -1019,7 +1533,7 @@
     }
 
     // ==========================================================================
-    // 2. محرك المحاضرات القياسي واستكمال التقدم
+    // 3. محرك المحاضرات القياسي واستكمال التقدم
     // ==========================================================================
     function cacheLectureOffline(lecId, data) {
         const key = 'mq_offline_' + lecId.toLowerCase();
@@ -1053,27 +1567,6 @@
         }
     }
 
-    async function getLecturesCatalog() {
-        if (state.catalogCache.length > 0) return state.catalogCache;
-        try {
-            const catDoc = await db.collection('metadata').doc('catalog').get();
-            if (catDoc.exists && Array.isArray(catDoc.data().items)) {
-                state.catalogCache = catDoc.data().items;
-                return state.catalogCache;
-            }
-        } catch (_) {}
-        const snap = await db.collection('lectures').limit(60).get();
-        const items = [];
-        snap.forEach(d => {
-            const data = d.data();
-            if (Array.isArray(data.questions)) {
-                items.push({ id: d.id, title: data.title || d.id, qCount: data.questions.length });
-            }
-        });
-        state.catalogCache = items;
-        return items;
-    }
-
     async function loadStandardLecture(id) {
         const loadingView = document.getElementById('loading-view');
         loadingView.style.display = 'block';
@@ -1104,11 +1597,11 @@
             loadingView.style.display = 'none';
             document.getElementById('lecture-view').style.display = 'block';
             document.getElementById('lec-title-display').innerText = state.title;
-            document.getElementById('all-q-badge').innerText = `(${state.all.length} سؤال)`;
+            document.getElementById('all-q-badge').innerText = `(${state.all.length})`;
 
             const savedErrors = JSON.parse(localStorage.getItem('mq_e') || '[]');
             const errCount = state.all.filter(q => savedErrors.some(e => e.q === q.q)).length;
-            document.getElementById('err-q-badge').innerText = `(${errCount} سؤال)`;
+            document.getElementById('err-q-badge').innerText = `(${errCount})`;
 
             const idLower = id.toLowerCase();
             const matchedMod = COMP_MODULES_MAP.find(m => idLower.includes(m.match));
@@ -1117,7 +1610,7 @@
                 banner.style.display = 'block';
                 banner.innerHTML = `
                     <button type="button" class="btn-nav btn-green" style="width:100%; padding:12px; border:1.5px solid var(--gold);" onclick="window.location.href='?id=${matchedMod.key}'">
-                        🏆 اضغط هنا لبدء امتحان شامل على موديول ${matchedMod.key} بالكامل
+                        🏆 ${getAppLang() === 'en' ? `Start Comprehensive Exam on ${matchedMod.key} Module` : `اضغط هنا لبدء امتحان شامل على موديول ${matchedMod.key} بالكامل`}
                     </button>
                 `;
             }
@@ -1139,7 +1632,9 @@
         try {
             const saved = JSON.parse(raw);
             if (saved && saved.idx > 0 && saved.idx < saved.total && Array.isArray(saved.qIndices)) {
-                document.getElementById('resume-banner-txt').innerText = `🔄 لديك اختبار غير مكتمل في هذه المحاضرة (توقفت عند السؤال ${saved.idx + 1} من ${saved.total})`;
+                document.getElementById('resume-banner-txt').innerText = getAppLang() === 'en'
+                    ? `🔄 You have an unfinished quiz in this lecture (stopped at Question ${saved.idx + 1} of ${saved.total})`
+                    : `🔄 لديك اختبار غير مكتمل في هذه المحاضرة (توقفت عند السؤال ${saved.idx + 1} من ${saved.total})`;
                 document.getElementById('resume-banner-box').style.display = 'block';
             }
         } catch (_) {}
@@ -1204,7 +1699,7 @@
     function showPartsGrid() {
         const counts = {};
         state.all.forEach(q => {
-            const pName = q.p || 'عام';
+            const pName = q.p || 'General';
             counts[pName] = (counts[pName] || 0) + 1;
         });
         const g = document.getElementById('parts-selection-grid');
@@ -1231,14 +1726,14 @@
             const errQTexts = new Set(savedErrors.map(e => e.q));
             state.active = state.all.filter(q => errQTexts.has(q.q));
             if (state.active.length === 0) {
-                return showMedAlert("ممتاز يا دكتور! ليس لديك أي أخطاء مسجلة في هذه المحاضرة 🥳");
+                return showMedAlert(getAppLang() === 'en' ? "Great job! You have no recorded errors in this lecture 🥳" : "ممتاز يا دكتور! ليس لديك أي أخطاء مسجلة في هذه المحاضرة 🥳");
             }
         } else if (t === 'custom') {
             const selectedParts = Array.from(document.querySelectorAll('#parts-selection-grid .config-btn.selected')).map(e => e.dataset.p);
             if (selectedParts.length === 0) {
-                return showMedAlert("⚠️ يرجى اختيار جزء واحد على الأقل للمتابعة يا دكتور!");
+                return showMedAlert(getAppLang() === 'en' ? "⚠️ Please select at least one part to continue!" : "⚠️ يرجى اختيار جزء واحد على الأقل للمتابعة يا دكتور!");
             }
-            state.active = state.all.filter(q => selectedParts.includes(q.p || 'عام'));
+            state.active = state.all.filter(q => selectedParts.includes(q.p || 'General'));
         }
         document.getElementById('max-q-count').innerText = state.active.length;
         const limitInput = document.getElementById('q-limit-input');
@@ -1252,10 +1747,8 @@
         const valStr = input ? input.value.trim() : "";
         const maxQ = state.active.length;
         if (valStr === "") {
-            showMedAlert(`يا دكتور، بما أنك لم تحدد عدداً، سيتم عرض كل الأسئلة المتاحة في هذا النطاق وعددها (${maxQ}) سؤالاً.`, () => {
-                state.cfg.l = maxQ;
-                nextS(2);
-            });
+            state.cfg.l = maxQ;
+            nextS(2);
         } else {
             let val = parseInt(valStr, 10);
             if (isNaN(val) || val < 1) val = 1;
@@ -1303,6 +1796,7 @@
         saveCurrentQuizProgress();
 
         const idx = state.idx;
+        const lang = getAppLang();
         const progressPct = Math.round(((idx + 1) / state.cfg.l) * 100);
         const card = document.createElement('article');
         card.className = 'stack-card';
@@ -1313,10 +1807,10 @@
         if (state.osce_images && state.osce_images.length > 0) {
             const imgObj = state.osce_images.find(i => originalIdx >= i.from_question && originalIdx <= i.to_question);
             if (imgObj) {
-                imgHtml = `<div style="text-align:center; margin-bottom:12px;"><img src="${escapeHTML(imgObj.image_name)}" alt="صورة السؤال الطبي" style="max-width:100%; max-height:350px; border-radius:10px; border:2px solid var(--gold); cursor:zoom-in;" onclick="window.open(this.src,'_blank')"></div>`;
+                imgHtml = `<div style="text-align:center; margin-bottom:12px;"><img src="${escapeHTML(imgObj.image_name)}" alt="Medical Question Image" style="max-width:100%; max-height:350px; border-radius:10px; border:2px solid var(--gold); cursor:zoom-in;" onclick="window.open(this.src,'_blank')"></div>`;
             }
         } else if (q.imgUrl && q.imgUrl.startsWith('http')) {
-            imgHtml = `<div style="text-align:center; margin-bottom:12px;"><img src="${escapeHTML(q.imgUrl)}" alt="صورة السؤال الطبي" style="max-width:100%; max-height:350px; border-radius:10px; border:2px solid var(--gold); cursor:zoom-in;" onclick="window.open(this.src,'_blank')"></div>`;
+            imgHtml = `<div style="text-align:center; margin-bottom:12px;"><img src="${escapeHTML(q.imgUrl)}" alt="Medical Question Image" style="max-width:100%; max-height:350px; border-radius:10px; border:2px solid var(--gold); cursor:zoom-in;" onclick="window.open(this.src,'_blank')"></div>`;
         }
 
         const isSaved = state.landmarks.includes(idx);
@@ -1326,26 +1820,26 @@
                 <span class="part-tag" title="${escapeHTML(q.p || state.title)}">${escapeHTML(q.p || state.title)}</span>
                 <div class="q-tools-group">
                     <button type="button" class="btn-chip ${isSaved ? 'active' : ''}" id="lm-btn-${idx}" onclick="toggleQuestionLandmark(${idx})">
-                        🔖 ${isSaved ? 'محفوظ' : 'حفظ'}
+                        🔖 ${isSaved ? (lang === 'en' ? 'Saved' : 'محفوظ') : (lang === 'en' ? 'Save' : 'حفظ')}
                     </button>
                     <button type="button" class="btn-chip btn-chip-report" onclick="toggleQuestionReportBox(${idx})">
-                        🚩 أبلغ عن خطأ
+                        🚩 ${lang === 'en' ? 'Report' : 'أبلغ عن خطأ'}
                     </button>
                 </div>
             </div>
 
             <div id="report-box-${idx}" style="display:none; margin-bottom:10px;" class="dynamic-section-box">
-                <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:6px;">📝 اشرح الخطأ العلمي أو الملاحظة في هذا السؤال ليتم تعديله فوراً:</label>
+                <label style="font-size:0.82rem; font-weight:800; display:block; margin-bottom:6px;">📝 ${lang === 'en' ? 'Describe the scientific note in this question:' : 'اكتب الملاحظة العلمية في هذا السؤال ليتم مراجعته:'}</label>
                 <textarea id="report-txt-${idx}" rows="2" style="width:100%; padding:8px; border-radius:6px; background:var(--surface); color:var(--text); border:1px solid var(--border);"></textarea>
                 <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button type="button" class="btn-nav btn-red" style="padding:6px 12px; font-size:0.8rem;" onclick="submitQuestionReport(${idx})">إرسال للإدارة</button>
-                    <button type="button" class="btn-nav btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="document.getElementById('report-box-${idx}').style.display='none'">إلغاء</button>
+                    <button type="button" class="btn-nav btn-red" style="padding:6px 12px; font-size:0.8rem;" onclick="submitQuestionReport(${idx})">${lang === 'en' ? 'Submit' : 'إرسال للإدارة'}</button>
+                    <button type="button" class="btn-nav btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="document.getElementById('report-box-${idx}').style.display='none'">${lang === 'en' ? 'Cancel' : 'إلغاء'}</button>
                 </div>
             </div>
 
             <div class="q-progress-box">
                 <div class="q-progress-header">
-                    <span>🩺 السؤال ${idx + 1} من ${state.cfg.l}</span>
+                    <span>🩺 ${lang === 'en' ? `Question ${idx + 1} of ${state.cfg.l}` : `السؤال ${idx + 1} من ${state.cfg.l}`}</span>
                     <span>${progressPct}%</span>
                 </div>
                 <div class="q-progress-track">
@@ -1358,7 +1852,7 @@
             <div id="opts-cont-${idx}"></div>
             <div id="fb-cont-${idx}"></div>
             <button type="button" class="btn-nav btn-outline" id="skip-btn-${idx}" style="width:100%; margin-top:10px;" onclick="skipCurrentQuestion(${idx})">
-                ⏭️ تخطي السؤال والانتقال للتالي
+                ⏭️ ${lang === 'en' ? 'Skip Question' : 'تخطي السؤال والانتقال للتالي'}
             </button>
         `;
 
@@ -1373,7 +1867,7 @@
             revealBtn.type = 'button';
             revealBtn.className = 'btn-nav btn-maroon';
             revealBtn.style.width = '100%';
-            revealBtn.innerHTML = `👀 إظهار الإجابة النموذجية (Show Model Answer)`;
+            revealBtn.innerHTML = `👀 ${lang === 'en' ? 'Show Model Answer' : 'إظهار الإجابة النموذجية (Show Model Answer)'}`;
             revealBtn.onclick = () => handleSelfEvalReveal(q, idx, revealBtn);
             grid.appendChild(revealBtn);
         } else {
@@ -1392,7 +1886,7 @@
                 const strikeBtn = document.createElement('button');
                 strikeBtn.type = 'button';
                 strikeBtn.className = 'btn-strike-opt';
-                strikeBtn.title = 'شطب / استبعاد هذا الخيار (Rule-out)';
+                strikeBtn.title = lang === 'en' ? 'Strike out option' : 'شطب / استبعاد هذا الخيار';
                 strikeBtn.innerHTML = '✂️';
                 strikeBtn.onclick = (e) => {
                     e.stopPropagation();
@@ -1413,15 +1907,16 @@
         revealBtn.style.display = 'none';
         const skipBtn = document.getElementById(`skip-btn-${idx}`);
         if (skipBtn) skipBtn.style.display = 'none';
+        const lang = getAppLang();
 
         const fb = document.getElementById(`fb-cont-${idx}`);
         fb.innerHTML = `
-            <div class="explanation-box">${q.d || q.a || 'لا توجد إجابة نموذجية مرفقة.'}</div>
+            <div class="explanation-box">${q.d || q.a || ''}</div>
             <div class="static-section-box" id="self-eval-box-${idx}" style="margin-top:10px; text-align:center;">
-                <p style="margin:0 0 8px 0; font-weight:800; color:var(--gold); font-size:0.88rem;">🩺 قيّم إجابتك بصدق يا دكتور لحساب درجتك بدقة:</p>
+                <p style="margin:0 0 8px 0; font-weight:800; color:var(--gold); font-size:0.88rem;">🩺 ${lang === 'en' ? 'Rate your answer to record your score:' : 'قيّم إجابتك يا دكتور لحساب درجتك بدقة:'}</p>
                 <div style="display:flex; gap:8px;">
-                    <button type="button" class="btn-nav btn-green" style="flex:1;" onclick="submitSelfEval(${idx}, true)">✅ إجابتي كانت صحيحة</button>
-                    <button type="button" class="btn-nav btn-red" style="flex:1;" onclick="submitSelfEval(${idx}, false)">❌ أحتاج لمراجعتها</button>
+                    <button type="button" class="btn-nav btn-green" style="flex:1;" onclick="submitSelfEval(${idx}, true)">✅ ${lang === 'en' ? 'I knew it' : 'إجابتي كانت صحيحة'}</button>
+                    <button type="button" class="btn-nav btn-red" style="flex:1;" onclick="submitSelfEval(${idx}, false)">❌ ${lang === 'en' ? 'Needs review' : 'أحتاج لمراجعتها'}</button>
                 </div>
             </div>
         `;
@@ -1433,8 +1928,8 @@
         const box = document.getElementById(`self-eval-box-${idx}`);
         if (box) {
             box.innerHTML = isCorrect
-                ? `<b style="color:var(--success);">✅ تم احتساب السؤال صحيحاً في درجتك!</b>`
-                : `<b style="color:var(--error);">📌 تم حفظ السؤال في بنك أخطائك لمراجعته لاحقاً.</b>`;
+                ? `<b style="color:var(--success);">✅ ${getAppLang() === 'en' ? 'Counted as correct!' : 'تم احتساب السؤال صحيحاً في درجتك!'}</b>`
+                : `<b style="color:var(--error);">📌 ${getAppLang() === 'en' ? 'Saved to your Error Bank for review.' : 'تم حفظ السؤال في بنك أخطائك لمراجعته لاحقاً.'}</b>`;
         }
         if (isCorrect) {
             triggerCelebration();
@@ -1486,25 +1981,26 @@
             });
         }
 
+        const lang = getAppLang();
         const fb = document.getElementById(`fb-cont-${idx}`);
         let fbHtml = '';
         if (qObj.d) {
-            fbHtml += `<div class="explanation-box"><span class="ans-badge">Explain</span> <b>الشرح الأساسي:</b><br>${qObj.d}</div>`;
+            fbHtml += `<div class="explanation-box"><span class="ans-badge">Explain</span> <b>${lang === 'en' ? 'Explanation:' : 'الشرح الأساسي:'}</b><br>${qObj.d}</div>`;
         }
 
         fbHtml += `
             <div style="margin-top:10px;">
                 <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                     <button type="button" class="btn-chip" style="border-color:var(--gold); color:var(--gold); padding:7px 14px; font-size:0.84rem;" onclick="requestAiExplanation(${idx}, this)">
-                        🤖 اشرح وناقش هذا السؤال مع MEDCORE AI
+                        🤖 ${lang === 'en' ? 'Explain & Discuss with MEDCORE AI' : 'اشرح وناقش هذا السؤال مع MEDCORE AI'}
                     </button>
-                    <button type="button" class="btn-chip" onclick="openModal('ai-models-info')" title="حالة محركات MEDCORE AI">ℹ️ المحركات</button>
+                    <button type="button" class="btn-chip" onclick="openModal('ai-models-info')" title="MEDCORE AI Engines">ℹ️ ${lang === 'en' ? 'AI Engines' : 'المحركات'}</button>
                 </div>
 
                 <div id="ai-panel-${idx}" class="medcore-ai-panel" style="display:none;">
                     <div class="ai-header-strip">
-                        <span style="font-weight:900; color:var(--gold); font-size:0.84rem;">🩺 تحليل محرك MEDCORE الطبي</span>
-                        <span class="ai-model-badge" id="ai-model-badge-${idx}">جاري اختيار المحرك...</span>
+                        <span style="font-weight:900; color:var(--gold); font-size:0.84rem;">🩺 ${lang === 'en' ? 'MEDCORE AI Clinical Analysis' : 'تحليل محرك MEDCORE الطبي'}</span>
+                        <span class="ai-model-badge" id="ai-model-badge-${idx}">MEDCORE AI</span>
                     </div>
                     <div id="ai-exp-content-${idx}" style="white-space:pre-wrap; font-size:0.92rem; line-height:1.7; unicode-bidi:plaintext;"></div>
                     <div id="ai-chat-wrap-${idx}"></div>
@@ -1517,12 +2013,15 @@
 
     function showNextButton(idx) {
         if (document.getElementById(`next-btn-act-${idx}`)) return;
+        const lang = getAppLang();
         const b = document.createElement('button');
         b.type = 'button';
         b.id = `next-btn-act-${idx}`;
         b.className = 'btn-nav btn-gold';
         b.style.cssText = 'width:100%; margin-top:12px; padding:13px; font-size:1rem;';
-        b.innerHTML = (idx < state.cfg.l - 1) ? "السؤال التالي 👇" : "إنهاء الاختبار وعرض النتيجة 🏁";
+        b.innerHTML = (idx < state.cfg.l - 1)
+            ? (lang === 'en' ? "Next Question 👇" : "السؤال التالي 👇")
+            : (lang === 'en' ? "Finish Quiz & Show Results 🏁" : "إنهاء الاختبار وعرض النتيجة 🏁");
         b.onclick = () => {
             b.style.display = 'none';
             if (idx < state.cfg.l - 1) {
@@ -1548,19 +2047,22 @@
 
     function triggerCelebration() {
         try { confetti({ particleCount: 65, spread: 60, origin: { y: 0.65 }, zIndex: 99999 }); } catch (_) {}
-        const quotes = ["عاش يا دكتور! 👏", "طبيب المستقبل! 🩺", "إجابة مثالية! 🌟", "الله ينور عليك! ✨"];
+        const quotes = getAppLang() === 'en'
+            ? ["Great job, Doctor! 👏", "Future Consultant! 🩺", "Perfect Answer! 🌟", "Brilliant! ✨"]
+            : ["عاش يا دكتور! 👏", "طبيب المستقبل! 🩺", "إجابة مثالية! 🌟", "الله ينور عليك! ✨"];
         showToast(quotes[Math.floor(Math.random() * quotes.length)]);
     }
 
     function toggleQuestionLandmark(idx) {
         const pos = state.landmarks.indexOf(idx);
         const btn = document.getElementById(`lm-btn-${idx}`);
+        const lang = getAppLang();
         if (pos > -1) {
             state.landmarks.splice(pos, 1);
-            if (btn) { btn.classList.remove('active'); btn.innerHTML = '🔖 حفظ'; }
+            if (btn) { btn.classList.remove('active'); btn.innerHTML = `🔖 ${lang === 'en' ? 'Save' : 'حفظ'}`; }
         } else {
             state.landmarks.push(idx);
-            if (btn) { btn.classList.add('active'); btn.innerHTML = '🔖 محفوظ'; }
+            if (btn) { btn.classList.add('active'); btn.innerHTML = `🔖 ${lang === 'en' ? 'Saved' : 'محفوظ'}`; }
         }
         document.getElementById('toolbar-lm-count').innerText = state.landmarks.length;
         saveCurrentQuizProgress();
@@ -1568,16 +2070,17 @@
 
     function toggleLandmarkModal() {
         const list = document.getElementById('landmarks-content-list');
+        const lang = getAppLang();
         if (state.landmarks.length === 0) {
-            list.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:18px;">لم تقم بحفظ أي أسئلة في قائمة المراجعة بعد.</p>`;
+            list.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:18px;">${lang === 'en' ? 'No bookmarked questions yet.' : 'لم تقم بحفظ أي أسئلة في قائمة المراجعة بعد.'}</p>`;
         } else {
             list.innerHTML = state.landmarks.map(idx => {
                 const q = state.active[idx];
                 return `
                     <div class="static-section-box" style="margin-bottom:8px;">
-                        <b style="color:var(--gold);">السؤال رقم ${idx + 1}</b>
+                        <b style="color:var(--gold);">${lang === 'en' ? `Question #${idx + 1}` : `السؤال رقم ${idx + 1}`}</b>
                         <p style="font-size:0.86rem; direction:ltr; text-align:left; margin:5px 0;">${escapeHTML(stripHTML(q?.q || '').substring(0, 120))}...</p>
-                        <button type="button" class="btn-nav btn-blue" style="width:100%; padding:7px;" onclick="scrollToLandmarkQuestion(${idx})">الانتقال للسؤال ⬇️</button>
+                        <button type="button" class="btn-nav btn-blue" style="width:100%; padding:7px;" onclick="scrollToLandmarkQuestion(${idx})">${lang === 'en' ? 'Jump to Question ⬇️' : 'الانتقال للسؤال ⬇️'}</button>
                     </div>
                 `;
             }).join('');
@@ -1642,7 +2145,7 @@
         const itemStatsUpdate = {};
 
         state.active.forEach(q => {
-            const pName = q.p || 'عام';
+            const pName = q.p || 'General';
             if (!state.parts[pName]) state.parts[pName] = { c: 0, t: 0 };
             state.parts[pName].t++;
 
@@ -1666,13 +2169,14 @@
         document.getElementById('final-pct-display').innerText = pct + '%';
         document.getElementById('final-raw-score').innerText = `${state.score} / ${totalQ}`;
 
+        const lang = getAppLang();
         let phrase = "";
         if (pct >= 85) {
-            phrase = "أداء استثنائي يا دكتور! تستحق وسام التميز الطبي 🥇🏆";
+            phrase = lang === 'en' ? "Outstanding performance, Doctor! 🥇🏆" : "أداء استثنائي يا دكتور! تستحق وسام التميز الطبي 🥇🏆";
             try { confetti({ particleCount: 140, spread: 75, origin: { y: 0.6 } }); } catch (_) {}
-        } else if (pct >= 75) phrase = "جيد جداً! مجهود محترم ولكن يمكنك الوصول للقمة 💪";
-        else if (pct >= 60) phrase = "مقبول، ولكن هذا الجزء يحتاج لمراجعة أعمق لتثبيت المعلومة 📚";
-        else phrase = "لا تيأس! راجع أخطاءك بتركيز وحاول مرة أخرى، أنت قادر على تجاوزها 🩺";
+        } else if (pct >= 75) phrase = lang === 'en' ? "Very good! Keep pushing toward the top 💪" : "جيد جداً! مجهود محترم ولكن يمكنك الوصول للقمة 💪";
+        else if (pct >= 60) phrase = lang === 'en' ? "Fair, but this topic needs deeper review 📚" : "مقبول، ولكن هذا الجزء يحتاج لمراجعة أعمق لتثبيت المعلومة 📚";
+        else phrase = lang === 'en' ? "Review your errors carefully and try again 🩺" : "لا تيأس! راجع أخطاءك بتركيز وحاول مرة أخرى، أنت قادر على تجاوزها 🩺";
 
         const phEl = document.getElementById('final-phrase');
         phEl.innerText = phrase;
@@ -1690,14 +2194,14 @@
         }
         document.getElementById('revision-alert').style.display = needsRev ? 'block' : 'none';
 
-        let reviewHTML = '<h3 style="margin-top:22px; border-bottom:2px solid var(--border); padding-bottom:8px;">📋 المراجعة التفصيلية للاختبار:</h3>';
+        let reviewHTML = `<h3 style="margin-top:22px; border-bottom:2px solid var(--border); padding-bottom:8px;">📋 ${lang === 'en' ? 'Detailed Quiz Review:' : 'المراجعة التفصيلية للاختبار:'}</h3>`;
         state.active.forEach((q, i) => {
             const isCorrect = q.userAnswer && q.userAnswer.trim() === (q.a || '').trim();
             const color = isCorrect ? 'var(--success)' : 'var(--error)';
             reviewHTML += `
                 <div class="stack-card" style="border-left-color:${color}; padding:14px; margin-bottom:12px;">
                     <div class="question-text" style="margin-top:0;"><b>${i + 1}.</b> ${q.q}</div>
-                    <p style="margin:5px 0; direction:ltr; text-align:left;">Your Answer: <b style="color:${color};">${escapeHTML(q.userAnswer === '__SELF_WRONG__' ? 'تحتاج مراجعة' : (q.userAnswer || 'لم يُجب'))}</b></p>
+                    <p style="margin:5px 0; direction:ltr; text-align:left;">Your Answer: <b style="color:${color};">${escapeHTML(q.userAnswer === '__SELF_WRONG__' ? 'Needs Review' : (q.userAnswer || 'Unanswered'))}</b></p>
                     ${!isCorrect ? `<p style="margin:5px 0; direction:ltr; text-align:left;">Correct Answer: <b style="color:var(--success);">${escapeHTML(q.a)}</b></p>` : ''}
                     ${q.d ? `<div class="explanation-box">${q.d}</div>` : ''}
                 </div>
@@ -1738,7 +2242,7 @@
     }
 
     // ==========================================================================
-    // 3. بنك الأخطاء الذكي، الدرجات، والأنظمة الفرعية (التجميعات، الشامل، OSPE، Arena)
+    // 4. بنك الأخطاء، الدرجات، والأنظمة الفرعية (التجميعات، الشامل، OSPE)
     // ==========================================================================
     function saveToErrors(q) {
         let errors = JSON.parse(localStorage.getItem('mq_e') || '[]');
@@ -1748,7 +2252,7 @@
             existing.lastWrong = Date.now();
         } else {
             errors.push({
-                p: q.p || state.title || 'عام',
+                p: q.p || state.title || 'General',
                 q: q.q,
                 options: q.options || [],
                 a: q.a,
@@ -1770,7 +2274,7 @@
         errors[idx].streak = (errors[idx].streak || 0) + 1;
         if (errors[idx].streak >= 2) {
             errors.splice(idx, 1);
-            showToast("🎉 أتقنت هذا السؤال مرتين متتاليتين وتمت إزالته من بنك أخطائك!");
+            showToast(getAppLang() === 'en' ? "🎉 Mastered twice and removed from your Error Bank!" : "🎉 أتقنت هذا السؤال مرتين متتاليتين وتمت إزالته من بنك أخطائك!");
         }
         safeSetLocalStorage('mq_e', JSON.stringify(errors));
         updateErrorBadgeCount();
@@ -1784,7 +2288,7 @@
 
     function saveHistory(pct) {
         let h = JSON.parse(localStorage.getItem('mq_h') || '[]');
-        h.unshift({ t: state.title || 'اختبار', s: pct, d: new Date().toLocaleDateString('ar-EG') });
+        h.unshift({ t: state.title || 'Quiz', s: pct, d: new Date().toLocaleDateString('ar-EG') });
         if (h.length > 50) h = h.slice(0, 50);
         safeSetLocalStorage('mq_h', JSON.stringify(h));
     }
@@ -1793,7 +2297,7 @@
         const h = JSON.parse(localStorage.getItem('mq_h') || '[]');
         const cont = document.getElementById('history-content-list');
         if (h.length === 0) {
-            cont.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:18px;">لا يوجد سجل اختبارات حتى الآن.</p>`;
+            cont.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:18px;">${getAppLang() === 'en' ? 'No quiz history yet.' : 'لا يوجد سجل اختبارات حتى الآن.'}</p>`;
             return;
         }
         cont.innerHTML = h.map(x => `
@@ -1810,20 +2314,21 @@
     function loadErrorsUI() {
         const errors = JSON.parse(localStorage.getItem('mq_e') || '[]');
         const cont = document.getElementById('errors-content-list');
+        const lang = getAppLang();
         if (errors.length === 0) {
-            cont.innerHTML = `<p style="text-align:center; color:var(--success); font-weight:800; padding:22px;">🎉 ليس لديك أي أخطاء مسجلة، استمر في تفوقك يا دكتور!</p>`;
+            cont.innerHTML = `<p style="text-align:center; color:var(--success); font-weight:800; padding:22px;">🎉 ${lang === 'en' ? 'Your Error Bank is clean! Keep excelling!' : 'ليس لديك أي أخطاء مسجلة، استمر في تفوقك يا دكتور!'}</p>`;
             return;
         }
         cont.innerHTML = `
             <div style="margin-bottom:10px; display:flex; gap:6px;">
-                <button type="button" class="btn-nav btn-gold" style="flex:1;" onclick="startGlobalErrorBankQuiz()">🚀 امتحن على جميع أخطائك الآن (${errors.length})</button>
-                <button type="button" class="btn-nav btn-outline" onclick="if(confirm('مسح سجل الأخطاء بالكامل؟')){localStorage.removeItem('mq_e'); loadErrorsUI(); updateErrorBadgeCount();}">🗑️ مسح الكل</button>
+                <button type="button" class="btn-nav btn-gold" style="flex:1;" onclick="startGlobalErrorBankQuiz()">🚀 ${lang === 'en' ? `Quiz All Errors Now (${errors.length})` : `امتحن على جميع أخطائك الآن (${errors.length})`}</button>
+                <button type="button" class="btn-nav btn-outline" onclick="if(confirm('مسح سجل الأخطاء بالكامل؟')){localStorage.removeItem('mq_e'); loadErrorsUI(); updateErrorBadgeCount();}">🗑️</button>
             </div>
         ` + errors.map(x => `
             <div class="static-section-box" style="margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; font-size:0.76rem; color:var(--gold); margin-bottom:4px;">
-                    <span>📚 ${escapeHTML(x.p || 'عام')}</span>
-                    <span>مستوى الإتقان: ${x.streak || 0} / 2</span>
+                    <span>📚 ${escapeHTML(x.p || 'General')}</span>
+                    <span>${lang === 'en' ? 'Mastery:' : 'مستوى الإتقان:'} ${x.streak || 0} / 2</span>
                 </div>
                 <div style="direction:ltr; text-align:left; font-weight:800; font-size:0.9rem;">${x.q}</div>
                 <div style="margin-top:4px; color:var(--success); font-weight:800; direction:ltr; text-align:left;">✅ Correct: ${escapeHTML(x.a)}</div>
@@ -1837,7 +2342,7 @@
         closeModal('errors');
         state.all = errors;
         state.active = [...errors];
-        state.title = "مراجعة بنك الأخطاء الذكي ⚠️";
+        state.title = getAppLang() === 'en' ? "Smart Error Bank Review ⚠️" : "مراجعة بنك الأخطاء الذكي ⚠️";
         state.id = "error_bank";
         state.scope = "errors";
         document.getElementById('home-view').style.display = 'none';
@@ -1852,27 +2357,27 @@
     async function launchModulesBrowserEngine() {
         const sub = document.getElementById('sub-engine-view');
         sub.style.display = 'block';
+        const lang = getAppLang();
         sub.innerHTML = `
             <div class="quiz-card">
                 <div class="lecture-main-banner">
-                    <h2 style="margin:0; font-size:1.15rem;">📚 الموديولات والاختبارات الشاملة</h2>
-                    <button type="button" class="btn-chip" onclick="window.location.href='index.html'">🏠 الرئيسية</button>
+                    <h2 style="margin:0; font-size:1.15rem;">📚 ${lang === 'en' ? 'Comprehensive Modules' : 'الموديولات والاختبارات الشاملة'}</h2>
+                    <button type="button" class="btn-chip" onclick="window.location.href='index.html'">🏠 ${lang === 'en' ? 'Home' : 'الرئيسية'}</button>
                 </div>
-                <p style="color:var(--text-muted); font-weight:700; font-size:0.88rem;">اختر الموديول لبدء اختبار شامل على جميع محاضراته أو تخصيص محاضرات محددة 🎯</p>
                 <div id="modules-grid-box" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px; margin-top:12px;">
-                    <p style="text-align:center; grid-column:1/-1;">⏳ جاري تحميل التجميعات...</p>
+                    <p style="text-align:center; grid-column:1/-1;">⏳ ${uiTxt('loadingTitle')}</p>
                 </div>
             </div>
             <div id="module-picker-modal" class="modal-overlay">
                 <div class="modal-card">
                     <button type="button" class="close-btn" onclick="document.getElementById('module-picker-modal').style.display='none'">✖</button>
-                    <h3 id="picker-mod-title" style="margin-top:0; color:var(--gold);">اختر المحاضرات</h3>
-                    <button type="button" id="btn-full-mod-start" class="btn-nav btn-maroon" style="width:100%; margin-bottom:10px;">🏆 بدء اختبار شامل لكل محاضرات الموديول</button>
+                    <h3 id="picker-mod-title" style="margin-top:0; color:var(--gold);"></h3>
+                    <button type="button" id="btn-full-mod-start" class="btn-nav btn-maroon" style="width:100%; margin-bottom:10px;">🏆 ${lang === 'en' ? 'Start Full Module Exam' : 'بدء اختبار شامل لكل محاضرات الموديول'}</button>
                     <label style="display:flex; align-items:center; gap:8px; font-weight:800; margin-bottom:8px; cursor:pointer;">
-                        <input type="checkbox" id="cb-select-all-mod" onchange="document.querySelectorAll('.mod-lec-cb').forEach(c=>c.checked=this.checked)"> تحديد الكل
+                        <input type="checkbox" id="cb-select-all-mod" onchange="document.querySelectorAll('.mod-lec-cb').forEach(c=>c.checked=this.checked)"> ${lang === 'en' ? 'Select All' : 'تحديد الكل'}
                     </label>
                     <div id="picker-lec-list" style="max-height:240px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px; background:var(--surface-elevated);"></div>
-                    <button type="button" id="btn-custom-mod-start" class="btn-nav btn-gold" style="width:100%; margin-top:12px;">🚀 بدء الاختبار المخصص</button>
+                    <button type="button" id="btn-custom-mod-start" class="btn-nav btn-gold" style="width:100%; margin-top:12px;">🚀 ${lang === 'en' ? 'Start Custom Exam' : 'بدء الاختبار المخصص'}</button>
                 </div>
             </div>
         `;
@@ -1892,7 +2397,7 @@
                 card.type = 'button';
                 card.className = 'config-btn';
                 card.style.marginTop = '0';
-                card.innerHTML = `<span>📦 <b>${escapeHTML(d.name)}</b></span><small style="color:var(--gold); font-weight:900;">(${lecs.length} محاضرة)</small>`;
+                card.innerHTML = `<span>📦 <b>${escapeHTML(d.name)}</b></span><small style="color:var(--gold); font-weight:900;">(${lecs.length})</small>`;
                 card.onclick = () => {
                     document.getElementById('picker-mod-title').innerText = d.name;
                     const list = document.getElementById('picker-lec-list');
@@ -1948,7 +2453,7 @@
             state.id = 'combo_test';
             document.getElementById('lecture-view').style.display = 'block';
             document.getElementById('lec-title-display').innerText = title;
-            document.getElementById('all-q-badge').innerText = `(${combined.length} سؤال)`;
+            document.getElementById('all-q-badge').innerText = `(${combined.length})`;
         } catch (e) {
             document.getElementById('loading-view').style.display = 'none';
             showMedAlert("حدث خطأ أثناء تجميع الاختبار الشامل.");
@@ -2003,11 +2508,11 @@
             }));
 
             state.all = convertedQuestions;
-            state.title = data.title || `معمل OSPE (${ospeId})`;
+            state.title = data.title || `OSPE (${ospeId})`;
             state.id = ospeId;
             document.getElementById('lecture-view').style.display = 'block';
             document.getElementById('lec-title-display').innerText = state.title;
-            document.getElementById('all-q-badge').innerText = `(${state.all.length} محطة)`;
+            document.getElementById('all-q-badge').innerText = `(${state.all.length})`;
 
             db.collection('ospe_labs').doc(ospeId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
         } catch (e) {
@@ -2016,413 +2521,8 @@
         }
     }
 
-    // ساحة التحدي المتكاملة (MedQuiz Arena: تنافسي + تعاوني + شات صوتي)
-    function launchArenaEngine(initialRoomId) {
-        document.getElementById('quick-dashboard').style.display = 'none';
-        const sub = document.getElementById('sub-engine-view');
-        sub.style.display = 'block';
-
-        let myPlayerId = localStorage.getItem('mq_arena_pid') || ('p_' + Math.random().toString(36).substr(2, 6));
-        safeSetLocalStorage('mq_arena_pid', myPlayerId);
-        let roomId = initialRoomId;
-        let myName = '';
-        let lobbyUnsub = null;
-        let matchUnsub = null;
-        let headerUnsub = null;
-        let peer = null;
-
-        const cleanupSubscriptions = () => {
-            if (lobbyUnsub) { lobbyUnsub(); lobbyUnsub = null; }
-            if (matchUnsub) { matchUnsub(); matchUnsub = null; }
-            if (headerUnsub) { headerUnsub(); headerUnsub = null; }
-        };
-
-        const renderEntry = () => {
-            sub.innerHTML = `
-                <div class="quiz-card" style="text-align:center; max-width:500px; margin:16px auto;">
-                    <h1 style="color:var(--gold); font-size:2rem; margin:0 0 6px 0;">⚔️ MedQuiz Arena</h1>
-                    <p style="color:var(--text-muted); margin-bottom:16px; font-size:0.88rem;">ساحة المواجهة المباشرة والمذاكرة الجماعية بين أبطال الدفعة</p>
-                    <input type="text" id="arena-name" placeholder="أدخل اسمك يا دكتور..." style="width:100%; padding:13px; border-radius:var(--radius-sm); border:2px solid var(--gold); background:var(--surface-elevated); color:var(--text); font-size:1.05rem; text-align:center; font-weight:800; margin-bottom:14px;">
-                    ${roomId
-                        ? `<button type="button" id="btn-join-arena" class="btn-nav btn-green" style="width:100%; padding:14px; font-size:1.05rem;">🔥 انضمام للغرفة الآن</button>`
-                        : `<button type="button" id="btn-create-arena" class="btn-nav btn-gold" style="width:100%; padding:14px; font-size:1.05rem;">👑 إنشاء غرفة تحدي جديدة</button>`
-                    }
-                </div>
-            `;
-            if (roomId) document.getElementById('btn-join-arena').onclick = joinRoom;
-            else document.getElementById('btn-create-arena').onclick = renderHostSetup;
-        };
-
-        const renderHostSetup = async () => {
-            myName = document.getElementById('arena-name').value.trim();
-            if (!myName) return showMedAlert("يرجى كتابة اسمك أولاً يا دكتور!");
-
-            sub.innerHTML = `
-                <div class="quiz-card" style="max-width:580px; margin:14px auto;">
-                    <h2 style="color:var(--gold); margin-top:0; text-align:center;">⚙️ إعدادات المعركة</h2>
-                    <label style="font-weight:800; display:block; margin:10px 0 6px; font-size:0.88rem;">📚 اختر المحاضرة:</label>
-                    <select id="setup-lec" style="width:100%; padding:11px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border); font-weight:700;">
-                        <option>⏳ جاري تحميل الفهرس...</option>
-                    </select>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                        <div>
-                            <label style="font-weight:800; display:block; margin-bottom:5px; font-size:0.85rem;">🔢 عدد الأسئلة:</label>
-                            <input type="number" id="setup-count" value="10" min="1" max="50" style="width:100%; padding:10px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);">
-                        </div>
-                        <div>
-                            <label style="font-weight:800; display:block; margin-bottom:5px; font-size:0.85rem;">⏱️ وقت السؤال:</label>
-                            <select id="setup-time" style="width:100%; padding:10px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);">
-                                <option value="0">بدون وقت</option>
-                                <option value="30">30 ثانية</option>
-                                <option value="45" selected>45 ثانية</option>
-                                <option value="60">60 ثانية</option>
-                            </select>
-                        </div>
-                    </div>
-                    <label style="font-weight:800; display:block; margin:10px 0 5px; font-size:0.85rem;">⚔️ نظام اللعب:</label>
-                    <select id="setup-mode" style="width:100%; padding:10px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);">
-                        <option value="compete">🔥 منافسة فردية (كل لاعب يحل بأقصى سرعة)</option>
-                        <option value="coop">🤝 وضع تعاوني جماعي (نحل نفس السؤال معاً ونناقش الشرح)</option>
-                    </select>
-                    <label style="font-weight:800; display:block; margin:10px 0 5px; font-size:0.85rem;">🎙️ الشات الصوتي (WebRTC):</label>
-                    <select id="setup-voice" style="width:100%; padding:10px; border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--text); border:1.5px solid var(--border);">
-                        <option value="off">إغلاق الصوت</option>
-                        <option value="on">تفعيل المايك للمناقشة الصوتية</option>
-                    </select>
-                    <button type="button" id="btn-start-lobby" class="btn-nav btn-gold" style="width:100%; margin-top:16px; padding:14px;">توليد رابط الغرفة 🚀</button>
-                </div>
-            `;
-
-            const catalog = await getLecturesCatalog();
-            const sel = document.getElementById('setup-lec');
-            sel.innerHTML = catalog.map(item => `<option value="${escapeHTML(item.id)}">${escapeHTML(item.title)} (${item.qCount} سؤال)</option>`).join('') || '<option disabled>لا توجد محاضرات</option>';
-            document.getElementById('btn-start-lobby').onclick = createRoom;
-        };
-
-        const createRoom = async () => {
-            const btn = document.getElementById('btn-start-lobby');
-            btn.disabled = true;
-            btn.innerText = '⏳ جاري تجهيز الغرفة...';
-            const lecId = document.getElementById('setup-lec').value;
-            const qCount = Math.max(1, parseInt(document.getElementById('setup-count').value, 10) || 10);
-            const settings = {
-                timer: parseInt(document.getElementById('setup-time').value, 10) || 0,
-                mode: document.getElementById('setup-mode').value,
-                voice: document.getElementById('setup-voice').value === 'on'
-            };
-            roomId = 'r_' + Math.random().toString(36).substr(2, 6);
-
-            const res = await fetchLectureWithOfflineFallback(lecId);
-            if (!res.exists || !res.data.questions) return showMedAlert("تعذر سحب أسئلة المحاضرة.");
-            const selectedQs = [...res.data.questions].sort(() => 0.5 - Math.random()).slice(0, qCount);
-
-            await db.collection('arena_rooms').doc(roomId).set({
-                id: roomId,
-                lectureId: lecId,
-                hostId: myPlayerId,
-                status: 'lobby',
-                settings,
-                questions: selectedQs,
-                currentQIndex: 0,
-                players: {
-                    [myPlayerId]: { name: myName, score: 0, ready: true, finished: false, currentAns: null }
-                },
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            if (settings.voice) initVoiceChat();
-            renderLobby('host');
-        };
-
-        const joinRoom = async () => {
-            myName = document.getElementById('arena-name').value.trim();
-            if (!myName) return showMedAlert("يرجى كتابة اسمك أولاً!");
-            const roomRef = db.collection('arena_rooms').doc(roomId);
-            const doc = await roomRef.get();
-            if (!doc.exists || doc.data().status !== 'lobby') return showMedAlert("الغرفة غير متاحة أو بدأت بالفعل!");
-            if (Object.keys(doc.data().players || {}).length >= 6) return showMedAlert("الغرفة ممتلئة!");
-
-            await roomRef.update({
-                [`players.${myPlayerId}`]: { name: myName, score: 0, ready: true, finished: false, currentAns: null }
-            });
-            if (doc.data().settings?.voice) initVoiceChat();
-            renderLobby('guest');
-        };
-
-        const renderLobby = (role) => {
-            cleanupSubscriptions();
-            const link = window.location.href.split('?')[0] + '?arena=live&room=' + roomId;
-            sub.innerHTML = `
-                <div class="quiz-card" style="text-align:center;">
-                    <h2 style="color:var(--gold); margin-top:0;">⏳ غرفة الانتظار</h2>
-                    <div class="static-section-box" style="margin-bottom:14px;">
-                        <p style="margin:0 0 6px 0; font-weight:800; font-size:0.86rem;">شارك هذا الرابط مع أصدقائك للانضمام:</p>
-                        <div style="display:flex; gap:6px;">
-                            <input type="text" value="${escapeHTML(link)}" readonly style="flex:1; padding:9px; border-radius:6px; background:var(--surface); color:var(--gold); direction:ltr; border:1px solid var(--border); font-weight:800;">
-                            <button type="button" class="btn-nav btn-blue" onclick="navigator.clipboard.writeText('${escapeHTML(link)}'); showToast('تم نسخ رابط الغرفة ✅');">📋 نسخ</button>
-                        </div>
-                    </div>
-                    <div id="players-grid" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:18px;"></div>
-                    ${role === 'host'
-                        ? `<button type="button" id="btn-launch-arena" class="btn-nav btn-maroon" style="width:100%; padding:14px; font-size:1.1rem;">⚔️ ابدأ المعركة الآن للجميع!</button>`
-                        : `<div style="font-weight:800; color:var(--gold);">في انتظار المضيف لبدء المعركة...</div>`
-                    }
-                    <div id="voice-status" style="margin-top:10px; color:var(--text-muted); font-size:0.82rem;"></div>
-                </div>
-            `;
-
-            if (role === 'host') {
-                document.getElementById('btn-launch-arena').onclick = () => {
-                    db.collection('arena_rooms').doc(roomId).update({ status: 'playing', startTime: Date.now() });
-                };
-            }
-
-            lobbyUnsub = db.collection('arena_rooms').doc(roomId).onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-                const grid = document.getElementById('players-grid');
-                if (grid) {
-                    grid.innerHTML = Object.keys(data.players || {}).map(pid => `
-                        <div class="static-section-box" style="min-width:115px; text-align:center; margin-bottom:0;">
-                            <div style="font-size:1.6rem;">${pid === data.hostId ? '👑' : '🩺'}</div>
-                            <div style="font-weight:900; font-size:0.88rem;">${escapeHTML(data.players[pid].name)}</div>
-                        </div>
-                    `).join('');
-                }
-                if (data.status === 'playing') {
-                    if (lobbyUnsub) { lobbyUnsub(); lobbyUnsub = null; }
-                    if (data.settings?.mode === 'coop') startCoopMode(data);
-                    else startCompetitiveMode(data);
-                }
-            });
-        };
-
-        const startHeaderTracker = () => {
-            if (headerUnsub) headerUnsub();
-            headerUnsub = db.collection('arena_rooms').doc(roomId).onSnapshot(doc => {
-                if (!doc.exists) return;
-                const players = doc.data().players || {};
-                const header = document.getElementById('arena-live-header');
-                if (!header) return;
-                header.innerHTML = Object.keys(players).map(pid => {
-                    const p = players[pid];
-                    return `<div class="status-pill" style="${pid === myPlayerId ? 'border-color:var(--gold); color:var(--gold);' : ''}">
-                        <span>${escapeHTML(p.name)}:</span> <b>${Number(p.score) || 0}</b>
-                    </div>`;
-                }).join(' ⚔️ ');
-            });
-        };
-
-        const startCompetitiveMode = (roomData) => {
-            const qs = roomData.questions || [];
-            const timerSetting = roomData.settings?.timer || 0;
-            let currQ = 0;
-            let myScore = 0;
-            let qTimer = null;
-
-            const renderArenaQ = () => {
-                if (currQ >= qs.length) return finishMatch(myScore);
-                const q = qs[currQ];
-                const opts = [...(q.options || [])].sort(() => 0.5 - Math.random());
-
-                sub.innerHTML = `
-                    <div id="arena-live-header" class="quiz-card" style="padding:10px; display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
-                    <div class="stack-card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:800; font-size:0.88rem;">
-                            <span id="arena-q-timer" style="color:var(--error);"></span>
-                            <span style="color:var(--gold);">السؤال ${currQ + 1} من ${qs.length}</span>
-                        </div>
-                        <div class="question-text">${q.q}</div>
-                        <div id="arena-opts-box" style="display:flex; flex-direction:column; gap:7px;"></div>
-                    </div>
-                `;
-                startHeaderTracker();
-
-                const box = document.getElementById('arena-opts-box');
-                let answered = false;
-
-                if (timerSetting > 0) {
-                    let left = timerSetting;
-                    const tEl = document.getElementById('arena-q-timer');
-                    tEl.innerText = `⏱️ ${left}s`;
-                    qTimer = setInterval(() => {
-                        left--;
-                        if (tEl) tEl.innerText = `⏱️ ${left}s`;
-                        if (left <= 0) { clearInterval(qTimer); onPick(null, q.a); }
-                    }, 1000);
-                }
-
-                const onPick = (selectedVal, correctAns) => {
-                    if (answered) return;
-                    answered = true;
-                    if (qTimer) clearInterval(qTimer);
-                    if (selectedVal === correctAns) myScore++;
-
-                    db.collection('arena_rooms').doc(roomId).update({
-                        [`players.${myPlayerId}.score`]: myScore
-                    }).catch(() => {});
-
-                    box.querySelectorAll('.option').forEach(b => {
-                        b.classList.add('locked-opt');
-                        if (b.dataset.val === correctAns) b.classList.add('ans-correct');
-                        else if (b.dataset.val === selectedVal) b.classList.add('ans-wrong');
-                    });
-
-                    setTimeout(() => { currQ++; renderArenaQ(); }, 1200);
-                };
-
-                opts.forEach((opt, i) => {
-                    const b = document.createElement('button');
-                    b.type = 'button';
-                    b.className = 'option';
-                    b.dataset.val = opt;
-                    b.innerHTML = `<b>${String.fromCharCode(65 + i)}</b> <span>${opt}</span>`;
-                    b.onclick = () => onPick(opt, q.a);
-                    box.appendChild(b);
-                });
-            };
-            renderArenaQ();
-        };
-
-        const startCoopMode = (initialData) => {
-            const qs = initialData.questions || [];
-            let lastRenderedIdx = -1;
-
-            matchUnsub = db.collection('arena_rooms').doc(roomId).onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-                const cIdx = data.currentQIndex || 0;
-                if (cIdx >= qs.length) {
-                    cleanupSubscriptions();
-                    const myFinal = data.players?.[myPlayerId]?.score || 0;
-                    finishMatch(myFinal);
-                    return;
-                }
-
-                const q = qs[cIdx];
-                if (cIdx !== lastRenderedIdx) {
-                    lastRenderedIdx = cIdx;
-                    sub.innerHTML = `
-                        <div class="quiz-card">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:800; font-size:0.88rem;">
-                                <span style="color:var(--success);">🤝 الوضع التعاوني الجماعي</span>
-                                <span style="color:var(--gold);">السؤال ${cIdx + 1} من ${qs.length}</span>
-                            </div>
-                            <div class="question-text">${q.q}</div>
-                            <div id="coop-opts-box" style="display:flex; flex-direction:column; gap:7px;"></div>
-                            <div id="coop-votes-bar" style="margin-top:10px; font-size:0.84rem; color:var(--text-muted);"></div>
-                            <div id="coop-exp-area" class="explanation-box" style="display:none;">
-                                <b>✅ الإجابة الصحيحة:</b> ${escapeHTML(q.a)}<br>${q.d || ''}
-                            </div>
-                            ${data.hostId === myPlayerId ? `<button type="button" id="coop-next-btn" class="btn-nav btn-gold" style="width:100%; margin-top:12px;">السؤال التالي للجميع ➡️</button>` : ''}
-                        </div>
-                    `;
-                    const box = document.getElementById('coop-opts-box');
-                    (q.options || []).forEach((opt, i) => {
-                        const b = document.createElement('button');
-                        b.type = 'button';
-                        b.className = 'option';
-                        b.dataset.val = opt;
-                        b.innerHTML = `<b>${String.fromCharCode(65 + i)}</b> <span>${opt}</span>`;
-                        b.onclick = () => {
-                            const isOk = opt === q.a;
-                            db.collection('arena_rooms').doc(roomId).update({
-                                [`players.${myPlayerId}.currentAns`]: opt,
-                                [`players.${myPlayerId}.score`]: firebase.firestore.FieldValue.increment(isOk ? 1 : 0)
-                            });
-                            document.getElementById('coop-exp-area').style.display = 'block';
-                        };
-                        box.appendChild(b);
-                    });
-
-                    const nextBtn = document.getElementById('coop-next-btn');
-                    if (nextBtn) {
-                        nextBtn.onclick = () => {
-                            const resetUpdates = { currentQIndex: cIdx + 1 };
-                            Object.keys(data.players || {}).forEach(pid => {
-                                resetUpdates[`players.${pid}.currentAns`] = null;
-                            });
-                            db.collection('arena_rooms').doc(roomId).update(resetUpdates);
-                        };
-                    }
-                }
-
-                const votesBar = document.getElementById('coop-votes-bar');
-                if (votesBar) {
-                    const pills = Object.values(data.players || {})
-                        .filter(p => p.currentAns)
-                        .map(p => `<span class="status-pill">${escapeHTML(p.name)} أجاب ✔️</span>`);
-                    votesBar.innerHTML = pills.join(' ');
-                }
-            });
-        };
-
-        const finishMatch = (finalScore) => {
-            cleanupSubscriptions();
-            sub.innerHTML = `<div class="quiz-card" style="text-align:center; padding:34px;"><h3 style="color:var(--gold);">⏳ في انتظار بقية الأبطال لإنهاء المعركة...</h3></div>`;
-
-            const roomRef = db.collection('arena_rooms').doc(roomId);
-            roomRef.update({
-                [`players.${myPlayerId}.finished`]: true
-            }).catch(() => {});
-
-            matchUnsub = roomRef.onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-                const playersArr = Object.values(data.players || {});
-                const allFinished = playersArr.every(p => p.finished);
-
-                if (allFinished) {
-                    cleanupSubscriptions();
-                    playersArr.sort((a, b) => (b.score || 0) - (a.score || 0));
-                    const winner = playersArr[0] || { name: myName, score: finalScore };
-                    const isMeWinner = winner.name === myName;
-
-                    sub.innerHTML = `
-                        <div class="quiz-card" style="text-align:center;">
-                            <div style="font-size:3rem;">${isMeWinner ? '🏆' : '⚔️'}</div>
-                            <h2 style="color:var(--gold);">${isMeWinner ? 'أنت بطل المعركة يا دكتور!' : 'معركة قوية يا أبطال!'}</h2>
-                            <h3>المركز الأول: ${escapeHTML(winner.name)} (${Number(winner.score) || 0} نقطة)</h3>
-                            <div style="margin:14px 0; text-align:right;">
-                                ${playersArr.map((r, i) => `
-                                    <div class="static-section-box" style="display:flex; justify-content:space-between; margin-bottom:7px;">
-                                        <b>#${i + 1} ${escapeHTML(r.name)}</b>
-                                        <span class="status-pill">${Number(r.score) || 0} نقطة</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <button type="button" class="btn-nav btn-gold" style="width:100%;" onclick="window.location.href='index.html'">🏠 العودة للرئيسية</button>
-                        </div>
-                    `;
-                }
-            });
-        };
-
-        function initVoiceChat() {
-            if (!window.Peer) return;
-            try {
-                peer = new Peer(myPlayerId);
-                navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
-                    const vs = document.getElementById('voice-status');
-                    if (vs) vs.innerText = '🎙️ المايك مفعل ومتصل بالغرفة الصوتية';
-                    peer.on('call', call => {
-                        call.answer(stream);
-                        call.on('stream', remoteStream => {
-                            const audio = document.createElement('audio');
-                            audio.srcObject = remoteStream;
-                            audio.autoplay = true;
-                            document.body.appendChild(audio);
-                        });
-                    });
-                }).catch(() => {});
-            } catch (_) {}
-        }
-
-        renderEntry();
-    }
-
     // ==========================================================================
-    // 4. الرادار، الإشعارات، القاموس الطبي، والقيم المعملية
+    // 5. الرادار، الإشعارات، والقاموس الطبي العائم
     // ==========================================================================
     let unsentSolvedCount = 0;
 
@@ -2489,7 +2589,7 @@
                         if (all[uid].lectureId === currentId) inLec++;
                     }
                 }
-                if (txt) txt.innerText = `${total} متصل (${inLec} هنا)`;
+                if (txt) txt.innerText = getAppLang() === 'en' ? `${total} Online` : `${total} متصل (${inLec} هنا)`;
             });
         };
 
@@ -2607,12 +2707,6 @@
     }
 
     function initMedicalDictionary() {
-        const abbrevs = {
-            "ANS": "Autonomic nervous system", "CNS": "Central nervous system", "PNS": "Peripheral nervous system",
-            "GIT": "Gastrointestinal tract", "CVS": "Cardiovascular system", "ECG": "Electrocardiogram",
-            "EEG": "Electroencephalogram", "RBC": "Red blood cell", "WBC": "White blood cell",
-            "CSF": "Cerebrospinal fluid", "GFR": "Glomerular filtration rate", "ABG": "Arterial blood gas"
-        };
         let searchCounter = 0;
 
         const lookupTerm = async (rawTerm) => {
@@ -2625,10 +2719,16 @@
             sheet.classList.add('open');
             status.style.display = 'block';
             res.style.display = 'none';
-            status.innerHTML = `⏳ جاري ترجمة وتحليل: <span class="mq-hl-term">${escapeHTML(rawTerm)}</span>...`;
+            status.innerHTML = `⏳ <span class="mq-hl-term">${escapeHTML(rawTerm)}</span>...`;
 
-            const target = abbrevs[rawTerm.toUpperCase()] || rawTerm;
-            const isSentence = rawTerm.split(/\s+/).length > 3;
+            // فحص قاموس المصطلحات المحلي في medcore-tools.js أولاً
+            let localTermHit = null;
+            if (typeof window.mqSearchTerms === 'function') {
+                const hits = window.mqSearchTerms(rawTerm);
+                if (hits && hits.length > 0 && hits[0].abbr.toLowerCase() === rawTerm.toLowerCase()) {
+                    localTermHit = hits[0];
+                }
+            }
 
             try {
                 let gRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(rawTerm)}`);
@@ -2636,30 +2736,14 @@
                 let gAr = '';
                 (await gRes.json())[0].forEach(t => gAr += t[0]);
 
-                let wikiExtract = null;
-                if (!isSentence) {
-                    try {
-                        let wRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(target)}`);
-                        if (wRes.ok) {
-                            let wJson = await wRes.json();
-                            if (wJson.extract && !wJson.extract.includes("may refer to")) wikiExtract = wJson.extract;
-                        }
-                    } catch (_) {}
-                }
-
-                if (myId !== searchCounter) return;
                 status.style.display = 'none';
                 res.style.display = 'block';
-                document.getElementById('mq-d-g').innerHTML = `<b style="color:var(--gold);">🌍 الترجمة الطبية:</b> <span class="mq-hl-term">${escapeHTML(rawTerm)}</span> ⟸ <b>${escapeHTML(gAr)}</b>`;
+                document.getElementById('mq-d-g').innerHTML = `<b style="color:var(--gold);">🌍 الترجمة:</b> <span class="mq-hl-term">${escapeHTML(rawTerm)}</span> ⟸ <b>${escapeHTML(gAr)}</b>`;
 
                 const medBox = document.getElementById('mq-d-med');
-                if (wikiExtract) {
-                    const shortEn = wikiExtract.split('. ').slice(0, 2).join('. ') + '.';
-                    let eRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(shortEn)}`);
-                    let eAr = '';
-                    (await eRes.json())[0].forEach(t => eAr += t[0]);
+                if (localTermHit) {
                     medBox.style.display = 'block';
-                    medBox.innerHTML = `<b style="color:var(--success);">🩺 التعريف من الموسوعة الطبية:</b><br>${escapeHTML(eAr)}`;
+                    medBox.innerHTML = `<b style="color:var(--success);">🩺 ${escapeHTML(localTermHit.fullEn)} (${escapeHTML(localTermHit.fullAr)}):</b><br>${escapeHTML(localTermHit.definitionAr || localTermHit.definition)}`;
                 } else {
                     medBox.style.display = 'none';
                 }
@@ -2672,7 +2756,7 @@
             setTimeout(() => {
                 const selObj = window.getSelection();
                 const text = selObj ? selObj.toString().trim() : '';
-                if (text.length >= 2 && text.length <= 260 && /[a-zA-Z]/.test(text)) {
+                if (text.length >= 2 && text.length <= 240 && /[a-zA-Z]/.test(text)) {
                     if (selObj.anchorNode?.parentElement?.closest('#mq-dict, input, textarea')) return;
                     lookupTerm(text);
                 }
@@ -2680,71 +2764,6 @@
         };
         document.addEventListener('mouseup', onSelectText);
         document.addEventListener('touchend', onSelectText);
-    }
-
-    const CLINICAL_LAB_VALUES = [
-        { cat: "Electrolytes & Renal", name: "Sodium (Na+)", val: "136 – 145 mEq/L" },
-        { cat: "Electrolytes & Renal", name: "Potassium (K+)", val: "3.5 – 5.0 mEq/L" },
-        { cat: "Electrolytes & Renal", name: "Calcium (Ca2+)", val: "8.4 – 10.2 mg/dL" },
-        { cat: "Electrolytes & Renal", name: "BUN (Blood Urea Nitrogen)", val: "7 – 18 mg/dL" },
-        { cat: "Electrolytes & Renal", name: "Serum Creatinine", val: "0.6 – 1.2 mg/dL" },
-        { cat: "Hematology (CBC)", name: "Hemoglobin (Hb)", val: "Male: 13.5–17.5 g/dL | Female: 12.0–16.0 g/dL" },
-        { cat: "Hematology (CBC)", name: "WBC Count", val: "4,500 – 11,000 /mm³" },
-        { cat: "Hematology (CBC)", name: "Platelets", val: "150,000 – 400,000 /mm³" },
-        { cat: "Hematology (CBC)", name: "MCV", val: "80 – 100 fL" },
-        { cat: "Arterial Blood Gas (ABG)", name: "Arterial pH", val: "7.35 – 7.45" },
-        { cat: "Arterial Blood Gas (ABG)", name: "PaCO2", val: "33 – 45 mmHg" },
-        { cat: "Arterial Blood Gas (ABG)", name: "HCO3-", val: "22 – 28 mEq/L" },
-        { cat: "Cerebrospinal Fluid (CSF)", name: "CSF Glucose", val: "40 – 70 mg/dL (~2/3 of serum)" },
-        { cat: "Cerebrospinal Fluid (CSF)", name: "CSF Protein", val: "< 40 mg/dL" },
-        { cat: "Cerebrospinal Fluid (CSF)", name: "CSF Opening Pressure", val: "70 – 180 mm H2O" },
-        { cat: "Liver & Endocrine", name: "AST / ALT", val: "8 – 40 U/L" },
-        { cat: "Liver & Endocrine", name: "Total Bilirubin", val: "0.1 – 1.0 mg/dL" },
-        { cat: "Liver & Endocrine", name: "TSH", val: "0.4 – 4.0 µU/mL" },
-        { cat: "Liver & Endocrine", name: "Fasting Glucose", val: "70 – 99 mg/dL" }
-    ];
-
-    function filterLabValues() {
-        const q = (document.getElementById('lab-search-input')?.value || '').toLowerCase();
-        const filtered = CLINICAL_LAB_VALUES.filter(item =>
-            item.name.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q) || item.val.toLowerCase().includes(q)
-        );
-        document.getElementById('lab-values-body').innerHTML = `
-            <table style="direction:ltr; text-align:left;">
-                <thead><tr><th style="text-align:left;">Test</th><th style="text-align:left;">Normal Range</th><th style="text-align:left;">Category</th></tr></thead>
-                <tbody>
-                    ${filtered.map(i => `<tr><td><b>${escapeHTML(i.name)}</b></td><td style="color:var(--gold); font-weight:800;">${escapeHTML(i.val)}</td><td><small>${escapeHTML(i.cat)}</small></td></tr>`).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-
-    async function renderHomeCatalog() {
-        const list = document.getElementById('home-catalog-list');
-        if (!list) return;
-        list.innerHTML = `<span style="color:var(--text-muted); font-size:0.84rem;">⏳ جاري جلب فهرس المحاضرات...</span>`;
-        await getLecturesCatalog();
-        filterHomeCatalog();
-    }
-
-    function filterHomeCatalog() {
-        const list = document.getElementById('home-catalog-list');
-        if (!list) return;
-        const q = (document.getElementById('home-catalog-search')?.value || '').trim().toLowerCase();
-        const filtered = state.catalogCache.filter(item =>
-            item.id.toLowerCase().includes(q) || (item.title || '').toLowerCase().includes(q)
-        ).slice(0, 25);
-
-        if (filtered.length === 0) {
-            list.innerHTML = `<span style="color:var(--text-muted); font-size:0.84rem;">لا توجد محاضرات مطابقة للبحث.</span>`;
-            return;
-        }
-        list.innerHTML = filtered.map(item => `
-            <a href="?id=${encodeURIComponent(item.id)}" class="config-btn" style="text-decoration:none; margin-top:0; padding:10px 12px;">
-                <span>🩺 <b>${escapeHTML(item.title)}</b> <small style="color:var(--text-muted);">[${escapeHTML(item.id)}]</small></span>
-                <span class="status-pill">${Number(item.qCount) || 0} سؤال ➡️</span>
-            </a>
-        `).join('');
     }
 
     function openContributionModal() {
@@ -2800,7 +2819,7 @@
         sub.innerHTML = `
             <div class="quiz-card" style="text-align:center; padding:36px 18px;">
                 <div style="font-size:3.2rem; margin-bottom:10px;">⏳</div>
-                <h2 style="color:var(--gold); margin-top:0;">الأسئلة لا تزال قيد المراجعة العلمية</h2>
+                <h2 style="color:var(--gold); margin-top:0;">الأسئلة قيد المراجعة العلمية</h2>
                 <p style="color:var(--text-muted); max-width:460px; margin:10px auto 18px auto;">
                     سيتم تفعيل هذا الاختبار تلقائياً فور مراجعته واعتماده من إدارة MEDCORE.<br>
                     <b style="color:var(--success);">شكراً لمساهمتك في إثراء المحتوى لزملائك 💙</b>
@@ -2815,7 +2834,6 @@
         if (el) el.style.display = 'flex';
         if (t === 'score') loadHistoryUI();
         if (t === 'errors') loadErrorsUI();
-        if (t === 'labs') filterLabValues();
     }
 
     function closeModal(t) {
