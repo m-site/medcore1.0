@@ -1,7 +1,7 @@
 /* ==========================================================================
-   MEDCORE / MedQuiz — Master Unified & Mobile-First Stylesheet (v2026.5)
+   MEDCORE / MedQuiz — Master Unified & Mobile-First Stylesheet (v2026.7)
    الهوية الأكاديمية الرسمية: Navy (#162238) / Maroon (#7b1113) / Gold (#c5a059)
-   يدعم: الهاتف والكمبيوتر، الوضعين الليلي والنهاري، RTL/LTR، وشات MEDCORE AI
+   يدعم: الهاتف والكمبيوتر، الوضعين الليلي والنهاري، التبديل الكامل RTL/LTR، وشات MEDCORE AI
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&family=Inter:wght@500;600;700;800;900&display=swap');
 
@@ -100,6 +100,11 @@ body {
     user-select: text;
     -webkit-user-select: text;
     overflow-x: hidden;
+}
+
+html[dir="ltr"] body {
+    direction: ltr;
+    text-align: left;
 }
 
 button:focus-visible,
@@ -248,6 +253,11 @@ body.light-theme .logo-text {
     display: none;
 }
 
+html[dir="ltr"] .notif-badge-dot {
+    left: auto;
+    right: -4px;
+}
+
 #global-timer {
     background: linear-gradient(135deg, var(--maroon), #580b0d);
     color: #ffffff;
@@ -284,7 +294,7 @@ body.light-theme .logo-text {
     gap: 10px;
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-align: right;
+    text-align: start;
 }
 
 .prominent-complaint-bar:hover {
@@ -372,7 +382,7 @@ body.light-theme .quiz-card {
 .dynamic-section-box {
     background: var(--surface-elevated);
     border: 1.5px solid var(--border);
-    border-right: 5px solid var(--maroon);
+    border-inline-start: 5px solid var(--maroon);
     border-radius: var(--radius-md);
     padding: 14px 16px;
     margin-bottom: 14px;
@@ -381,14 +391,14 @@ body.light-theme .quiz-card {
 .static-section-box {
     background: var(--surface-elevated);
     border: 1.5px solid var(--border);
-    border-right: 5px solid var(--navy);
+    border-inline-start: 5px solid var(--navy);
     border-radius: var(--radius-md);
     padding: 14px 16px;
     margin-bottom: 14px;
 }
 
 body:not(.light-theme) .static-section-box {
-    border-right-color: var(--gold);
+    border-inline-start-color: var(--gold);
 }
 
 .sub-sec-title {
@@ -399,7 +409,7 @@ body:not(.light-theme) .static-section-box {
     background: var(--surface-soft);
     padding: 8px 14px;
     border-radius: var(--radius-sm);
-    border-right: 4px solid var(--gold);
+    border-inline-start: 4px solid var(--gold);
 }
 
 .btn-nav {
@@ -508,7 +518,7 @@ body:not(.light-theme) .btn-blue { background: #2563eb; border-color: rgba(255,2
     display: none;
     background: var(--surface-elevated);
     border: 1.5px solid var(--border);
-    border-right: 5px solid var(--maroon);
+    border-inline-start: 5px solid var(--maroon);
     border-radius: var(--radius-md);
     padding: 18px;
     margin-top: 10px;
@@ -528,7 +538,7 @@ body:not(.light-theme) .btn-blue { background: #2563eb; border-color: rgba(255,2
     margin-top: 8px;
     cursor: pointer;
     font-weight: 800;
-    text-align: right;
+    text-align: start;
     color: var(--text);
     transition: all 0.18s ease;
     font-size: 0.95rem;
@@ -866,11 +876,10 @@ body.light-theme .q-progress-header {
     padding: 14px 15px;
     background: var(--primary-light);
     border: 1px solid var(--border);
-    border-right: 4px solid var(--primary);
+    border-inline-start: 4px solid var(--primary);
     border-radius: var(--radius-sm);
     font-size: 0.94rem;
     color: var(--text);
-    direction: rtl;
     text-align: start;
     unicode-bidi: plaintext;
     line-height: 1.7;
@@ -886,7 +895,7 @@ body.light-theme .q-progress-header {
     border-radius: 5px;
     font-weight: 800;
     font-size: 0.8rem;
-    margin-left: 6px;
+    margin-inline-end: 6px;
     direction: ltr;
 }
 
@@ -960,7 +969,7 @@ body.light-theme .q-progress-header {
     background: var(--surface);
     color: var(--text);
     border: 1px solid var(--border);
-    border-right: 3px solid var(--gold);
+    border-inline-start: 3px solid var(--gold);
     padding: 9px 12px;
     border-radius: 12px 12px 12px 2px;
     font-size: 0.88rem;
@@ -977,7 +986,7 @@ body.light-theme .q-progress-header {
 }
 
 /* ==========================================================================
-   8. القاموس الطبي العائم، القائمة الجانبية، والنوافذ المنبثقة
+   8. القاموس الطبي العائم، القائمة الجانبية (RTL & LTR)، والنوافذ المنبثقة
    ========================================================================== */
 .mq-dict-sheet {
     position: fixed;
@@ -994,8 +1003,7 @@ body.light-theme .q-progress-header {
     z-index: 9500;
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
     transition: transform 0.28s ease;
-    direction: rtl;
-    text-align: right;
+    text-align: start;
     max-height: 44vh;
     overflow-y: auto;
 }
@@ -1064,6 +1072,11 @@ body.light-theme .mq-hl-term {
     font-weight: 900;
 }
 
+html[dir="ltr"] .close-btn {
+    left: auto;
+    right: 14px;
+}
+
 .mq-sidebar-drawer {
     position: fixed;
     top: 0;
@@ -1074,7 +1087,7 @@ body.light-theme .mq-hl-term {
     background: var(--surface);
     border-left: 3px solid var(--gold);
     z-index: 9900;
-    transition: right 0.28s ease;
+    transition: right 0.28s ease, left 0.28s ease;
     display: flex;
     flex-direction: column;
     box-shadow: -8px 0 30px rgba(0, 0, 0, 0.5);
@@ -1082,6 +1095,18 @@ body.light-theme .mq-hl-term {
 
 .mq-sidebar-drawer.open {
     right: 0;
+}
+
+html[dir="ltr"] .mq-sidebar-drawer {
+    right: auto;
+    left: -340px;
+    border-left: none;
+    border-right: 3px solid var(--gold);
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+html[dir="ltr"] .mq-sidebar-drawer.open {
+    left: 0;
 }
 
 table {
@@ -1093,7 +1118,7 @@ table {
 th, td {
     padding: 10px 8px;
     border-bottom: 1px solid var(--border);
-    text-align: right;
+    text-align: start;
     font-size: 0.88rem;
 }
 
