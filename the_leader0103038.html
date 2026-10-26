@@ -603,7 +603,10 @@
     let workspaceInitialized = false;
     function activateAdminWorkspace(badgeText) {
         // الطريقة التلقائية 100%: زرع ختم Medcore Ultra المشفر في متصفح الأدمن وفك أي حظر محلي
-        localStorage.setItem('mq_admin_ultra_pass', 'MEDCORE_LEADER_ULTRA_2026');
+        if (!localStorage.getItem('mq_admin_ultra_pass')) {
+            const t = prompt('اكتب Ultra Token (مرة واحدة فقط):');
+            if (t) localStorage.setItem('mq_admin_ultra_pass', t.trim());
+        }
         localStorage.removeItem('mq_ai_chat_banned');
         localStorage.removeItem('mq_ai_strikes');
 
