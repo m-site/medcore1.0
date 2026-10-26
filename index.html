@@ -84,7 +84,7 @@
                 📖 <span data-i18n="termsBtn">قاموس المصطلحات الطبية</span>
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="toggleSidebar(false); openArenaForCurrentLecture();">
-                ⚔️ <span data-i18n="arenaBtn">ساحة التحدي (MedQuiz Arena)</span>
+                ⚔️ <span data-i18n="arenaBtn">ساحة التحدي (Medcore Arena)</span>
             </button>
             <button type="button" class="btn-nav btn-outline" style="width:100%;" onclick="window.location.href='?modules=true'">
                 📚 <span data-i18n="modulesBtn">التجميعات والموديولات الشاملة</span>
@@ -158,7 +158,7 @@
             <p id="loading-sub" style="color:var(--text-muted); font-size:0.88rem; margin-top:6px;" data-i18n="loadingSub">يرجى الانتظار للحظات يا دكتور</p>
         </div>
 
-        <!-- أ) الشاشة الرئيسية ومحرك البحث الصاروخي الذكي (Rocket Fuzzy + AI Search) -->
+        <!-- أ) الشاشة الرئيسية ومحرك البحث الصاروخي الذكي (Rocket Fuzzy + ID Decoder + AI Search) -->
         <section id="home-view" class="quiz-card" style="display:none;">
             <h2 style="font-weight:900; margin:0 0 8px 0; text-align:center; font-size:1.25rem;" data-i18n="welcomeTitle">أهلاً بك في MEDCORE يا دكتور 👨‍⚕️🩺</h2>
             <p style="text-align:center; font-size:0.84rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="welcomeSub">
@@ -167,19 +167,19 @@
 
             <div class="static-section-box">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
-                    <label for="home-catalog-search" style="font-weight:800; font-size:0.9rem;" data-i18n="searchLabel">🔍 ابحث باسم المحاضرة أو الموضوع الطبي:</label>
+                    <label for="home-catalog-search" style="font-weight:800; font-size:0.9rem;" data-i18n="searchLabel">🔍 ابحث باسم المحاضرة، المادة، الموديول، أو الدفعة (حكومي/أهلية):</label>
                     <span id="catalog-total-badge" class="status-pill" style="font-size:0.72rem;">⏳ جاري التحميل...</span>
                 </div>
 
                 <div style="display:flex; gap:6px;">
-                    <input type="search" id="home-catalog-search" placeholder="اكتب اسم المحاضرة حتى لو بالتقريب (مثال: Autonomic, Cranial, Cardio, فسيولوجي)..." oninput="onRocketSearchInput()" onkeydown="if(event.key==='Enter') triggerAiSmartCatalogSearch()" style="flex:1; padding:11px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-weight:700;">
+                    <input type="search" id="home-catalog-search" placeholder="ابحث بعنوان المحاضرة أو المادة (مثال: فارما 2 أهلية، جيناتكس 3 حكومي، أناتومي، High yield)..." oninput="onRocketSearchInput()" onkeydown="if(event.key==='Enter') triggerAiSmartCatalogSearch()" style="flex:1; padding:11px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); font-weight:700;">
                     <button type="button" class="btn-nav btn-gold" id="btn-ai-smart-search" onclick="triggerAiSmartCatalogSearch()" title="بحث ذكي بالمعنى عبر الذكاء الاصطناعي" style="padding:10px 14px; white-space:nowrap;">
                         🤖 <span data-i18n="aiSearchBtn">بحث ذكي</span>
                     </button>
                 </div>
 
                 <div id="ai-search-status" style="display:none; font-size:0.8rem; color:var(--gold); font-weight:800; margin-top:6px;"></div>
-                <div id="home-catalog-list" style="margin-top:10px; max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:7px;"></div>
+                <div id="home-catalog-list" style="margin-top:10px; max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
             </div>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
@@ -198,7 +198,10 @@
 
             <div id="setup-wizard" class="super-wrapper">
                 <div class="lecture-main-banner">
-                    <h2 id="lec-title-display" style="margin:0; font-size:1.15rem; font-weight:900;"></h2>
+                    <div>
+                        <h2 id="lec-title-display" style="margin:0; font-size:1.15rem; font-weight:900;"></h2>
+                        <div id="lec-decoded-badges" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;"></div>
+                    </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button type="button" class="btn-chip" style="background:var(--maroon); color:#fff; border-color:var(--gold);" onclick="openArenaForCurrentLecture()">⚔️ <span data-i18n="challengeFriendsBtn">تحدي الأصدقاء في هذه المحاضرة</span></button>
                         <button type="button" class="btn-chip" style="background:var(--gold); color:#0b1322; border:none;" onclick="copyCurrentLink()">🔗 <span data-i18n="copyLinkBtn">نسخ الرابط</span></button>
@@ -328,7 +331,7 @@
         </div>
     </div>
 
-    <!-- ب) نافذة حالة محركات MEDCORE AI الأربعة (نصوص نظيفة وموجهة للطالب) -->
+    <!-- ب) نافذة حالة محركات MEDCORE AI الأربعة -->
     <div id="modal-ai-models-info" class="modal-overlay">
         <div class="modal-card">
             <button type="button" class="close-btn" onclick="closeModal('ai-models-info')">✖</button>
@@ -450,7 +453,7 @@
 
     <script>
     /* ==========================================================================
-       MEDCORE Unified Student Engine (v2026.6 — Bilingual + Rocket Search + AI)
+       MEDCORE Unified Student Engine (v2026.7 — Smart ID Decoder + Rocket Search)
        ========================================================================== */
     const firebaseConfig = {
         apiKey: "AIzaSyAElUTnaXitLw35Hb55kQWoe1AdbGO1t8A",
@@ -480,7 +483,7 @@
             complaintsBtn: "الشكاوى والاقتراحات",
             notifsBtn: "التحديثات والرسائل",
             newBadge: "جديد",
-            arenaBtn: "ساحة التحدي (MedQuiz Arena)",
+            arenaBtn: "ساحة التحدي (Medcore Arena)",
             modulesBtn: "التجميعات والموديولات الشاملة",
             errorBankBtn: "بنك أخطائك",
             scoreHistoryBtn: "سجل درجاتك",
@@ -499,8 +502,8 @@
             loadingSub: "يرجى الانتظار للحظات يا دكتور",
             welcomeTitle: "أهلاً بك في MEDCORE يا دكتور 👨‍⚕️🩺",
             welcomeSub: "💡 حدد أي مصطلح إنجليزي أثناء الحل لترجمته فوراً، واستخدم محرك MEDCORE AI لشرح ومناقشة أي سؤال طبياً.",
-            searchLabel: "🔍 ابحث باسم المحاضرة أو الموضوع الطبي:",
-            searchPlaceholder: "اكتب اسم المحاضرة حتى لو بالتقريب (مثال: Autonomic, Cranial, Cardio)...",
+            searchLabel: "🔍 ابحث باسم المحاضرة، المادة، الموديول، أو الدفعة (حكومي/أهلية):",
+            searchPlaceholder: "ابحث بعنوان المحاضرة أو المادة (مثال: فارما 2 أهلية، جيناتكس 3 حكومي، أناتومي، High yield)...",
             aiSearchBtn: "بحث ذكي",
             browseModulesBtn: "تصفح الموديولات الشاملة",
             challengeFriendsBtn: "تحدي الأصدقاء في هذه المحاضرة",
@@ -561,7 +564,7 @@
             complaintsBtn: "Complaints & Suggestions",
             notifsBtn: "Updates & Messages",
             newBadge: "New",
-            arenaBtn: "MedQuiz Arena (Live Challenge)",
+            arenaBtn: "Medcore Arena (Live Challenge)",
             modulesBtn: "Comprehensive Modules",
             errorBankBtn: "Smart Error Bank",
             scoreHistoryBtn: "Score History",
@@ -580,8 +583,8 @@
             loadingSub: "Please wait a moment, Doctor",
             welcomeTitle: "Welcome to MEDCORE, Doctor 👨‍⚕️🩺",
             welcomeSub: "💡 Select any English term during a quiz for instant translation, and use MEDCORE AI to discuss any question.",
-            searchLabel: "🔍 Search by Lecture Title or Medical Topic:",
-            searchPlaceholder: "Type lecture title or topic (e.g. Autonomic, Cranial, Cardio)...",
+            searchLabel: "🔍 Search by Lecture Title, Subject, Module, or Batch (SCU/NINU):",
+            searchPlaceholder: "Search by lecture title, subject, or quiz type (e.g. Pharma 2 NINU, Genetics 3 SCU, High yield)...",
             aiSearchBtn: "AI Search",
             browseModulesBtn: "Browse Comprehensive Modules",
             challengeFriendsBtn: "Challenge Friends in this Lecture",
@@ -718,7 +721,6 @@
         else safeSetLocalStorage('mq_lang', nextLang);
         applyLanguageToDOM();
 
-        // إبلاغ نافذة الأدوات المفتوحة (new.html) بتغيير اللغة لحظياً
         const iframe = document.getElementById('hub-iframe-view');
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage({ type: 'MQ_SET_LANG', lang: nextLang }, '*');
@@ -780,6 +782,133 @@
     }
 
     // ==========================================================================
+    // محلل أكواد المحاضرات الذكي (MEDCORE Smart ID Decoder)
+    // يفكك أكواد مثل: genatics3scu.quiz3.f1 أو ph2ninu.quiz2.cns
+    // مع اعتماد ph = Pharmacology و phy = Physiology
+    // ==========================================================================
+    const MEDCORE_SUBJECT_PREFIXES = [
+        { prefix: 'community', en: 'Community',    ar: 'كوميونتي',     keywords: 'community medicine كوميونتي طب مجتمع' },
+        { prefix: 'genatics',  en: 'Genetics',     ar: 'جيناتكس',      keywords: 'genetics genatics جيناتكس وراثة وراثه' },
+        { prefix: 'genetics',  en: 'Genetics',     ar: 'جيناتكس',      keywords: 'genetics genatics جيناتكس وراثة وراثه' },
+        { prefix: 'pharma',    en: 'Pharmacology', ar: 'فارماكولوجي',   keywords: 'pharmacology pharma ph فارما فارماكولوجي أدوية ادويه' },
+        { prefix: 'physio',    en: 'Physiology',   ar: 'فسيولوجي',     keywords: 'physiology physio phy فسيولوجي وظائف أعضاء' },
+        { prefix: 'patho',     en: 'Pathology',    ar: 'باثولوجي',     keywords: 'pathology patho باثولوجي أمراض امراض' },
+        { prefix: 'micro',     en: 'Microbiology', ar: 'ميكروبيولوجي',  keywords: 'microbiology micro ميكرو ميكروبيولوجي بكتيريا مناعة' },
+        { prefix: 'histo',     en: 'Histology',    ar: 'هيستولوجي',    keywords: 'histology histo هيستو هيستولوجي أنسجة انسجه' },
+        { prefix: 'para',      en: 'Parasitology', ar: 'باراسيتولوجي',  keywords: 'parasitology para بارا باراسيتولوجي طفيليات' },
+        { prefix: 'phy',       en: 'Physiology',   ar: 'فسيولوجي',     keywords: 'physiology physio phy فسيولوجي وظائف أعضاء' },
+        { prefix: 'bio',       en: 'Biochemistry', ar: 'بايوكيمستري',   keywords: 'biochemistry bio بايو بايوكيمستري كيمياء حيوية' },
+        { prefix: 'ana',       en: 'Anatomy',      ar: 'أناتومي',      keywords: 'anatomy ana أناتومي اناتومي تشريح' },
+        { prefix: 'ph',        en: 'Pharmacology', ar: 'فارماكولوجي',   keywords: 'pharmacology pharma ph فارما فارماكولوجي أدوية ادويه' }
+    ];
+
+    function decodeMedcoreLectureId(rawId) {
+        const id = String(rawId || '').trim().toLowerCase();
+        if (!id) return null;
+
+        const segments = id.split('.');
+        const firstSeg = segments[0] || '';
+        const secondSeg = segments[1] || '';
+        const thirdSeg = segments[2] || '';
+
+        let subjectEn = '';
+        let subjectAr = '';
+        let subjectKw = '';
+        let remainder = firstSeg;
+
+        for (const s of MEDCORE_SUBJECT_PREFIXES) {
+            if (firstSeg.startsWith(s.prefix)) {
+                subjectEn = s.en;
+                subjectAr = s.ar;
+                subjectKw = s.keywords;
+                remainder = firstSeg.slice(s.prefix.length);
+                break;
+            }
+        }
+
+        const numMatch = remainder.match(/\d+/);
+        const lecNum = numMatch ? numMatch[0] : '';
+
+        let batchAr = '';
+        let batchEn = '';
+        let batchKw = '';
+        if (remainder.includes('scu') || id.includes('scu')) {
+            batchAr = 'حكومي SCU';
+            batchEn = 'SCU (Gov)';
+            batchKw = 'scu حكومي حكومى قناة السويس';
+        } else if (remainder.includes('ninu') || id.includes('ninu')) {
+            batchAr = 'أهلية NINU';
+            batchEn = 'NINU (Nat)';
+            batchKw = 'ninu أهلية اهليه إسماعيلية أهلية';
+        }
+
+        let quizLabelAr = '';
+        let quizLabelEn = '';
+        let quizKw = '';
+        const quizToken = secondSeg.startsWith('quiz') ? secondSeg : (id.match(/quiz[123]/)?.[0] || '');
+        if (quizToken === 'quiz1') {
+            quizLabelAr = '★ Quiz (1)';
+            quizLabelEn = '★ Quiz (1)';
+            quizKw = 'quiz 1 quiz1 كويز 1 كويز ١ أساسي';
+        } else if (quizToken === 'quiz2') {
+            quizLabelAr = '★ Quiz (2): Past exams & seminars';
+            quizLabelEn = '★ Quiz (2): Past exams & seminars';
+            quizKw = 'quiz 2 quiz2 كويز 2 كويز ٢ past exams seminars سنين سابقة امتحانات سابقة سيمنار';
+        } else if (quizToken === 'quiz3') {
+            quizLabelAr = '★ Quiz (3): High yield questions';
+            quizLabelEn = '★ Quiz (3): High yield questions';
+            quizKw = 'quiz 3 quiz3 كويز 3 كويز ٣ high yield هاي ييلد أسئلة الفهم العليا تريكات';
+        }
+
+        const moduleCode = thirdSeg ? thirdSeg.toUpperCase() : (secondSeg && !secondSeg.startsWith('quiz') ? secondSeg.toUpperCase() : '');
+        const moduleKw = moduleCode ? `${moduleCode} موديول ${moduleCode}` : '';
+
+        const badgesAr = [];
+        const badgesEn = [];
+        if (subjectAr) { badgesAr.push(`📘 ${subjectAr}`); badgesEn.push(`📘 ${subjectEn}`); }
+        if (lecNum) { badgesAr.push(`🔢 محاضرة ${lecNum}`); badgesEn.push(`🔢 Lec ${lecNum}`); }
+        if (batchAr) { badgesAr.push(`🏛️ ${batchAr}`); badgesEn.push(`🏛️ ${batchEn}`); }
+        if (quizLabelAr) { badgesAr.push(quizLabelAr); badgesEn.push(quizLabelEn); }
+        if (moduleCode) { badgesAr.push(`📦 ${moduleCode}`); badgesEn.push(`📦 ${moduleCode}`); }
+
+        const searchKeywords = [
+            subjectKw,
+            lecNum ? `محاضرة ${lecNum} محاضره ${lecNum} lec ${lecNum} lecture ${lecNum} ${subjectAr} ${lecNum} ${subjectEn} ${lecNum}` : '',
+            batchKw,
+            quizKw,
+            moduleKw
+        ].filter(Boolean).join(' ');
+
+        return {
+            subjectAr,
+            subjectEn,
+            lecNum,
+            batchAr,
+            batchEn,
+            quizLabelAr,
+            quizLabelEn,
+            moduleCode,
+            badgesAr,
+            badgesEn,
+            searchKeywords,
+            summary: badgesEn.join(' | ')
+        };
+    }
+
+    function renderDecodedBadgesHTML(decodedObj) {
+        if (!decodedObj) return '';
+        const list = getAppLang() === 'en' ? decodedObj.badgesEn : decodedObj.badgesAr;
+        if (!list || list.length === 0) return '';
+        return list.map(b => {
+            const isQuiz = b.includes('Quiz');
+            const bg = isQuiz ? 'rgba(197, 160, 89, 0.22)' : 'var(--surface-soft)';
+            const border = isQuiz ? 'var(--gold)' : 'var(--border)';
+            const color = isQuiz ? 'var(--gold-bright)' : 'var(--text-muted)';
+            return `<span style="background:${bg}; border:1px solid ${border}; color:${color}; padding:2px 8px; border-radius:6px; font-size:0.72rem; font-weight:800; display:inline-block;" dir="auto">${escapeHTML(b)}</span>`;
+        }).join('');
+    }
+
+    // ==========================================================================
     // بوابة فتح الأدوات وساحة التحدي عبر new.html (مقفولة على المحاضرة الحالية)
     // ==========================================================================
     function openHubTool(tabName, extraParams = {}) {
@@ -795,7 +924,7 @@
             calc: lang === 'en' ? '🧮 Clinical Medical Calculators (37 Tools)' : '🧮 الحاسبات الطبية السريرية (37 حاسبة)',
             mnemonic: lang === 'en' ? '🧠 MedMnemonic AI Generator' : '🧠 صانع المختصرات الطبية (MedMnemonic AI)',
             terms: lang === 'en' ? '📖 Medical Terminology Dictionary' : '📖 قاموس المصطلحات والاختصارات الطبية',
-            arena: lang === 'en' ? '⚔️ MedQuiz Live Arena' : '⚔️ ساحة التحدي المباشر (MedQuiz Arena)'
+            arena: lang === 'en' ? '⚔️ Medcore Live Arena' : '⚔️ ساحة التحدي المباشر (Medcore Arena)'
         };
         titleEl.innerText = titlesMap[tabName] || '🩺 MEDCORE Hub';
 
@@ -999,7 +1128,7 @@
     });
 
     // ==========================================================================
-    // 1. محرك البحث الصاروخي الذكي (Rocket Fuzzy Search + Full DB Sync + Gemma AI)
+    // 1. محرك البحث الصاروخي الذكي (Rocket Fuzzy + Smart ID Decoder + Gemma AI)
     // ==========================================================================
     function normalizeSearchString(str) {
         return String(str || '')
@@ -1007,13 +1136,13 @@
             .replace(/[أإآ]/g, 'ا')
             .replace(/ة/g, 'ه')
             .replace(/ى/g, 'ي')
-            .replace(/[\u064B-\u065F]/g, '') // إزالة التشكيل
+            .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+            .replace(/[\u064B-\u065F]/g, '')
             .replace(/[^a-z0-9\u0600-\u06FF\s]/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
     }
 
-    // حساب المسافة التقريبية بين كلمتين للتعامل مع الأخطاء الإملائية (Levenshtein Distance)
     function editDistance(a, b) {
         if (Math.abs(a.length - b.length) > 3) return 99;
         const matrix = [];
@@ -1028,42 +1157,44 @@
         return matrix[b.length][a.length];
     }
 
-    // حساب درجة تطابق المحاضرة مع بحث الطالب (يركز على اسم المحاضرة title والأجزاء parts)
     function computeLectureSearchScore(item, rawQuery) {
         const qNorm = normalizeSearchString(rawQuery);
         if (!qNorm) return 1;
 
+        if (!item._decoded) item._decoded = decodeMedcoreLectureId(item.id);
+        const decodedKw = normalizeSearchString(item._decoded?.searchKeywords || '');
         const titleNorm = normalizeSearchString(item.title || '');
         const partsNorm = normalizeSearchString(item.parts || '');
         const idNorm = normalizeSearchString(item.id || '');
-        const fullTarget = `${titleNorm} ${partsNorm}`;
+        const fullTarget = `${titleNorm} ${decodedKw} ${partsNorm} ${idNorm}`;
 
-        // 1. تطابق كامل للعبارة في عنوان المحاضرة
-        if (titleNorm === qNorm) return 1000;
-        if (titleNorm.startsWith(qNorm)) return 850;
-        if (titleNorm.includes(qNorm)) return 700;
-        if (partsNorm.includes(qNorm)) return 500;
-        if (idNorm.includes(qNorm)) return 400;
+        // 1. تطابق كامل للعبارة في العنوان أو الـ ID أو التفكيك
+        if (titleNorm === qNorm || idNorm === qNorm) return 1200;
+        if (titleNorm.startsWith(qNorm)) return 950;
+        if (titleNorm.includes(qNorm)) return 800;
+        if (decodedKw.includes(qNorm)) return 750;
+        if (partsNorm.includes(qNorm)) return 600;
+        if (idNorm.includes(qNorm)) return 550;
 
         // 2. البحث بالكلمات المتفرقة والتقريبية (Token & Fuzzy Matching)
         const qTokens = qNorm.split(' ').filter(Boolean);
-        const titleWords = fullTarget.split(' ').filter(Boolean);
+        const targetWords = fullTarget.split(' ').filter(Boolean);
         let totalScore = 0;
         let matchedTokens = 0;
 
         for (const qt of qTokens) {
             let bestTokenScore = 0;
-            for (const tw of titleWords) {
+            for (const tw of targetWords) {
                 if (tw === qt) {
-                    bestTokenScore = Math.max(bestTokenScore, 120);
-                } else if (tw.startsWith(qt) || qt.startsWith(tw)) {
-                    bestTokenScore = Math.max(bestTokenScore, 90);
+                    bestTokenScore = Math.max(bestTokenScore, 140);
+                } else if (tw.startsWith(qt) || (qt.length >= 3 && qt.startsWith(tw))) {
+                    bestTokenScore = Math.max(bestTokenScore, 100);
                 } else if (tw.includes(qt)) {
-                    bestTokenScore = Math.max(bestTokenScore, 70);
+                    bestTokenScore = Math.max(bestTokenScore, 75);
                 } else if (qt.length >= 4 && tw.length >= 4) {
                     const dist = editDistance(qt, tw);
-                    if (dist === 1) bestTokenScore = Math.max(bestTokenScore, 65);
-                    else if (dist === 2 && qt.length >= 6) bestTokenScore = Math.max(bestTokenScore, 45);
+                    if (dist === 1) bestTokenScore = Math.max(bestTokenScore, 70);
+                    else if (dist === 2 && qt.length >= 6) bestTokenScore = Math.max(bestTokenScore, 50);
                 }
             }
             if (bestTokenScore > 0) {
@@ -1073,16 +1204,18 @@
         }
 
         if (matchedTokens === 0) return 0;
-        // مكافأة إضافية إذا تطابقت جميع كلمات البحث
-        if (matchedTokens === qTokens.length) totalScore += 150;
+        if (matchedTokens === qTokens.length) totalScore += 250;
         return totalScore;
     }
 
-    // جلب كل المحاضرات الموجودة في الداتا بيز بالكامل بدون حد الـ 60 محاضرة!
     async function getLecturesCatalog(forceFullSync = false) {
         if (state.catalogCache.length > 0 && !forceFullSync) return state.catalogCache;
 
-        // 1. محاولة القراءة الفورية من فهرس RTDB السريع (lectures_search_index)
+        const enrichCatalogArray = (arr) => arr.map(item => ({
+            ...item,
+            _decoded: decodeMedcoreLectureId(item.id)
+        }));
+
         if (!forceFullSync) {
             try {
                 const rtdbSnap = await rtdb.ref('lectures_search_index').once('value');
@@ -1090,27 +1223,25 @@
                     const val = rtdbSnap.val();
                     const list = Array.isArray(val) ? val : Object.values(val || {});
                     if (list.length > 0) {
-                        state.catalogCache = list;
-                        updateCatalogCountBadge(list.length);
+                        state.catalogCache = enrichCatalogArray(list);
+                        updateCatalogCountBadge(state.catalogCache.length);
                         return state.catalogCache;
                     }
                 }
             } catch (_) {}
 
-            // 2. محاولة القراءة من metadata/catalog في Firestore
             try {
                 const catDoc = await db.collection('metadata').doc('catalog').get();
                 if (catDoc.exists && Array.isArray(catDoc.data().items) && catDoc.data().items.length > 0) {
-                    state.catalogCache = catDoc.data().items;
+                    state.catalogCache = enrichCatalogArray(catDoc.data().items);
                     updateCatalogCountBadge(state.catalogCache.length);
-                    // حفظ نسخة في RTDB لسرعة الصاروخ في المرات القادمة
-                    rtdb.ref('lectures_search_index').set(state.catalogCache).catch(() => {});
+                    rtdb.ref('lectures_search_index').set(catDoc.data().items).catch(() => {});
                     return state.catalogCache;
                 }
             } catch (_) {}
         }
 
-        // 3. إذا لم يكن الفهرس كاملاً، نسحب كل المحاضرات من Firestore بالكامل (بدون limit) ونحفظ عناوينها!
+        // سحب جميع المحاضرات من Firestore بالكامل بدون حد (No Limit)
         const snap = await db.collection('lectures').get();
         const items = [];
         snap.forEach(d => {
@@ -1118,20 +1249,21 @@
             const qs = Array.isArray(data.questions) ? data.questions : [];
             if (qs.length > 0) {
                 const uniqueParts = Array.from(new Set(qs.map(q => q.p).filter(Boolean))).slice(0, 8).join(' | ');
+                const dec = decodeMedcoreLectureId(d.id);
                 items.push({
                     id: d.id,
                     title: data.title || d.id,
                     parts: uniqueParts,
-                    module: data.module || '',
+                    module: data.module || dec?.moduleCode || '',
+                    decodedInfo: dec?.summary || '',
                     qCount: qs.length
                 });
             }
         });
 
-        state.catalogCache = items;
-        updateCatalogCountBadge(items.length);
+        state.catalogCache = enrichCatalogArray(items);
+        updateCatalogCountBadge(state.catalogCache.length);
 
-        // حفظ الفهرس الكامل في RTDB و Firestore ليستفيد منه جميع الطلاب في 0.001 ثانية
         if (items.length > 0) {
             rtdb.ref('lectures_search_index').set(items).catch(() => {});
             db.collection('metadata').doc('catalog').set({
@@ -1139,7 +1271,7 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(() => {});
         }
-        return items;
+        return state.catalogCache;
     }
 
     function updateCatalogCountBadge(count) {
@@ -1167,14 +1299,14 @@
         let scored = [];
 
         if (!rawQ) {
-            scored = state.catalogCache.slice(0, 40).map(item => ({ item, score: 1 }));
+            scored = state.catalogCache.slice(0, 45).map(item => ({ item, score: 1 }));
         } else {
             state.catalogCache.forEach(item => {
                 const sc = computeLectureSearchScore(item, rawQ);
                 if (sc > 0) scored.push({ item, score: sc });
             });
             scored.sort((a, b) => b.score - a.score);
-            scored = scored.slice(0, 35);
+            scored = scored.slice(0, 40);
         }
 
         renderCatalogItemsList(scored.map(s => s.item), rawQ);
@@ -1195,18 +1327,22 @@
         }
 
         const qLabel = getAppLang() === 'en' ? 'Qs' : 'سؤال';
-        list.innerHTML = itemsArray.map(item => `
-            <a href="?id=${encodeURIComponent(item.id)}" class="config-btn" style="text-decoration:none; margin-top:0; padding:11px 14px;">
-                <div style="display:flex; flex-direction:column; gap:2px; text-align:start;">
-                    <span style="font-weight:900; color:var(--text);">🩺 ${escapeHTML(item.title)}</span>
-                    ${item.parts ? `<small style="color:var(--text-muted); font-size:0.75rem;">🧩 ${escapeHTML(item.parts)}</small>` : ''}
-                </div>
-                <span class="status-pill">${Number(item.qCount) || 0} ${qLabel} ➡️</span>
-            </a>
-        `).join('');
+        list.innerHTML = itemsArray.map(item => {
+            if (!item._decoded) item._decoded = decodeMedcoreLectureId(item.id);
+            const badgesHTML = renderDecodedBadgesHTML(item._decoded);
+            return `
+                <a href="?id=${encodeURIComponent(item.id)}" class="config-btn" style="text-decoration:none; margin-top:0; padding:11px 14px; align-items:flex-start;">
+                    <div style="display:flex; flex-direction:column; gap:5px; text-align:start; flex:1;">
+                        <span style="font-weight:900; color:var(--text); font-size:0.96rem;">🩺 ${escapeHTML(item.title)}</span>
+                        ${badgesHTML ? `<div style="display:flex; flex-wrap:wrap; gap:5px;">${badgesHTML}</div>` : ''}
+                        ${item.parts ? `<small style="color:var(--text-muted); font-size:0.74rem;">🧩 ${escapeHTML(item.parts)}</small>` : ''}
+                    </div>
+                    <span class="status-pill" style="align-self:center;">${Number(item.qCount) || 0} ${qLabel} ➡️</span>
+                </a>
+            `;
+        }).join('');
     }
 
-    // البحث الدلالي الذكي عبر الذكاء الاصطناعي (يرسل عناوين المحاضرات لنموذج Gemma 4 31B صاحب الـ 14,400 طلب/يوم)
     async function triggerAiSmartCatalogSearch() {
         const rawQ = (document.getElementById('home-catalog-search')?.value || '').trim();
         if (!rawQ) return;
@@ -1215,13 +1351,16 @@
         const btn = document.getElementById('btn-ai-smart-search');
         if (statusEl) {
             statusEl.style.display = 'block';
-            statusEl.innerText = getAppLang() === 'en' ? '🤖 AI is ranking the closest lectures to your topic...' : '🤖 جاري ترتيب أقرب المحاضرات علمياً لبحثك...';
+            statusEl.innerText = getAppLang() === 'en' ? '🤖 AI is ranking the closest lectures to your search...' : '🤖 جاري ترتيب أقرب المحاضرات علمياً لبحثك...';
         }
         if (btn) btn.disabled = true;
 
         try {
             const catalog = await getLecturesCatalog();
-            const compactList = catalog.map((c, idx) => `${idx}:${c.title}`).join('\n');
+            const compactList = catalog.map((c, idx) => {
+                const dec = c._decoded || decodeMedcoreLectureId(c.id);
+                return `${idx}:${c.id} | ${c.title} | ${dec?.summary || ''}`;
+            }).join('\n');
 
             const res = await fetch(AI_WORKER_ENDPOINT, {
                 method: 'POST',
@@ -1263,9 +1402,9 @@
 
         panel.style.display = 'block';
         const lang = getAppLang();
-        const qHash = hashQuestionKey(q.q) + (quickAction ? `_${quickAction}` : '_main') + `_${lang}`;
+        // v2 key prefix لضمان توليد الشرح بالبرومبت الجديد المركز الخالي من الترجمة الحرفية
+        const qHash = 'v2_' + hashQuestionKey(q.q) + (quickAction ? `_${quickAction}` : '_main') + `_${lang}`;
 
-        // 1. فحص الكاش السحابي المشترك أولاً (0.1s Speed)
         if (!isAdminUltraUnlocked()) {
             try {
                 const cacheSnap = await rtdb.ref('ai_explanations_cache/' + qHash).once('value');
@@ -1364,7 +1503,7 @@
 
     async function requestQuestionMnemonic(idx, btn) {
         const q = state.active[idx];
-        const qHash = hashQuestionKey(q.q) + '_mnemonic';
+        const qHash = 'v2_' + hashQuestionKey(q.q) + '_mnemonic';
         const histEl = document.getElementById(`ai-chat-hist-${idx}`);
 
         try {
@@ -1598,6 +1737,13 @@
             document.getElementById('lecture-view').style.display = 'block';
             document.getElementById('lec-title-display').innerText = state.title;
             document.getElementById('all-q-badge').innerText = `(${state.all.length})`;
+
+            // عرض شارات تفكيك الـ ID تحت عنوان المحاضرة في صفحة الكويز أيضاً
+            const decoded = decodeMedcoreLectureId(id);
+            const badgesContainer = document.getElementById('lec-decoded-badges');
+            if (badgesContainer && decoded) {
+                badgesContainer.innerHTML = renderDecodedBadgesHTML(decoded);
+            }
 
             const savedErrors = JSON.parse(localStorage.getItem('mq_e') || '[]');
             const errCount = state.all.filter(q => savedErrors.some(e => e.q === q.q)).length;
@@ -2721,7 +2867,6 @@
             res.style.display = 'none';
             status.innerHTML = `⏳ <span class="mq-hl-term">${escapeHTML(rawTerm)}</span>...`;
 
-            // فحص قاموس المصطلحات المحلي في medcore-tools.js أولاً
             let localTermHit = null;
             if (typeof window.mqSearchTerms === 'function') {
                 const hits = window.mqSearchTerms(rawTerm);
