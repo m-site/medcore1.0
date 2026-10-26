@@ -661,6 +661,12 @@
         return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
     }
 
+    // مفتاح الكاش = نص السؤال + الاختيارات (مرتبة أبجدياً) لمنع خلط شرح سؤالين لهما نفس النص
+    function qCacheKey(q) {
+        const opts = (q.options || []).map(o => stripHTML(String(o))).sort().join('|');
+        return hashQuestionKey(q.q + '||' + opts);
+    }
+
     function hashQuestionKey(str) {
         const clean = stripHTML(str).toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g, '');
         let h = 2166136261;
@@ -980,7 +986,7 @@
     }
 
     function isAdminUltraUnlocked() {
-        return localStorage.getItem('mq_admin_ultra_pass') === 'MEDCORE_LEADER_ULTRA_2026';
+        return !!localStorage.getItem('mq_admin_ultra_pass');
     }
 
     function updateUltraBadgeText() {
@@ -1403,7 +1409,7 @@
         panel.style.display = 'block';
         const lang = getAppLang();
         // v2 key prefix لضمان توليد الشرح بالبرومبت الجديد المركز الخالي من الترجمة الحرفية
-        const qHash = 'v2_' + hashQuestionKey(q.q) + (quickAction ? `_${quickAction}` : '_main') + `_${lang}`;
+        const qHash = 'v3_' + qCacheKey(q) + (quickAction ? `_${quickAction}` : '_main') + `_${lang}`;
 
         if (!isAdminUltraUnlocked()) {
             try {
@@ -1503,7 +1509,7 @@
 
     async function requestQuestionMnemonic(idx, btn) {
         const q = state.active[idx];
-        const qHash = 'v2_' + hashQuestionKey(q.q) + '_mnemonic';
+        const qHash = 'v3_' + qCacheKey(q) + '_mnemonic';
         const histEl = document.getElementById(`ai-chat-hist-${idx}`);
 
         try {
